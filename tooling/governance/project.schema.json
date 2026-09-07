@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "initializedAt",
+    "starterVersion",
+    "productId",
+    "clientId",
+    "displayName",
+    "packageScope",
+    "profiles",
+    "services",
+    "environments",
+    "deployment",
+    "owners",
+    "generatedFiles"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../tooling/governance/project.schema.json"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "initializedAt": {
+      "const": "deterministic"
+    },
+    "starterVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "productId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "clientId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "packageScope": {
+      "type": "string",
+      "pattern": "^@[a-z0-9][a-z0-9-]*$"
+    },
+    "profiles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "web",
+          "api",
+          "data",
+          "identity",
+          "tenancy",
+          "jobs",
+          "events",
+          "cache",
+          "rate-limit"
+        ]
+      }
+    },
+    "services": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": ["web", "api", "worker"]
+      }
+    },
+    "environments": {
+      "const": ["development", "test", "staging", "production"]
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "topology"],
+      "properties": {
+        "target": {
+          "enum": ["dokploy", "railway"]
+        },
+        "topology": {
+          "enum": ["standard", "hardened"]
+        }
+      }
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["technical", "operations"],
+      "properties": {
+        "technical": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operations": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "generatedFiles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

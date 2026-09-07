@@ -1,0 +1,14 @@
+.git
+.github
+.thaarei
+.turbo
+.artifacts
+node_modules
+**/node_modules
+**/dist
+**/.next
+coverage
+*.log
+.env
+.env.*
+!.env.example

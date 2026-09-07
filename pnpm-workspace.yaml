@@ -1,0 +1,1 @@
+{ "packages": [ "packages/*", "apps/*" ], "forceLegacyDeploy": true, "allowBuilds": { "esbuild": true, "protobufjs": false }, minimumReleaseAgeExclude: [ '@thaarei-technology/foundation@1.0.0-dev.1', '@thaarei-technology/tooling@1.0.0-dev.1' ] }

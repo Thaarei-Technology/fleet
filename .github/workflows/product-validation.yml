@@ -1,0 +1,34 @@
+name: Starter validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with:
+          version: 11.22.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Prepare private registry authentication
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          umask 077
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" > "$RUNNER_TEMP/thaarei-npmrc"
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/thaarei-npmrc
+      - run: pnpm audit --prod --audit-level high
+      - run: pnpm validate:starter
