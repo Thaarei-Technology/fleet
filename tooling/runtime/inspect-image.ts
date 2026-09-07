@@ -113,7 +113,9 @@ if (forbidden.length > 0)
   throw new Error(`Runtime image contains forbidden files: ${forbidden.join(", ")}`);
 let containerCreated = false;
 try {
-  const environmentFile = existsSync(".env") ? ["--env-file", ".env"] : [];
+  const environmentFiles = [".env", ".artifacts/database-credentials.env"]
+    .filter(existsSync)
+    .flatMap((path) => ["--env-file", path]);
   docker([
     "run",
     "--detach",
@@ -128,7 +130,7 @@ try {
     "/tmp:rw,noexec,nosuid,size=67108864",
     "--network",
     "host",
-    ...environmentFile,
+    ...environmentFiles,
     "--env",
     "APP_ENV=ci",
     "--env",
