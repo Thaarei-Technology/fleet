@@ -100,6 +100,28 @@
         "required": false,
         "provider": "dokploy-traefik"
       }
+    },
+    {
+      "name": "migration",
+      "source": "packages/database",
+      "dockerfile": "packages/database/Dockerfile",
+      "healthCheck": {
+        "type": "none"
+      },
+      "variables": ["APP_ENV", "NODE_ENV", "MIGRATOR_DATABASE_URL"],
+      "applicationMode": "docker-provider",
+      "imagePromotion": "registry-digest-required",
+      "runtimeSecurity": {
+        "readOnlyRootFilesystem": true,
+        "tmpfs": ["/tmp"],
+        "capabilityDrop": ["ALL"],
+        "noNewPrivileges": true,
+        "resourceLimitsRequiredBeforeProduction": true
+      },
+      "domain": {
+        "required": false,
+        "provider": "dokploy-traefik"
+      }
     }
   ],
   "database": {
