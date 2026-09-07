@@ -4,19 +4,19 @@
 
 Canonical records: `.thaarei/work/*.md`.
 
-## FLEET-P1-SECSCAN: Fix PR #2 security scan license failure
-
-- Status: in_progress
-- Owner: Nishanth
-- Updated: 2026-09-07
-- Paths: .trivyignore
-
 ## INIT-001: Initialize Thaarei Fleet
 
 - Status: in_progress
 - Owner: Nishanth
 - Updated: 2026-08-19
 - Paths: apps/, packages/, deployment/
+
+## FLEET-P1-SECSCAN: Fix PR #2 security scan license failure
+
+- Status: complete
+- Owner: Nishanth
+- Updated: 2026-09-07
+- Paths: .trivyignore
 
 ## FLEET-P1-FIXES: Fix P1 review gaps (deploy env contract, dev-origin allowlist, VM docs)
 
