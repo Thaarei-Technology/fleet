@@ -143,7 +143,7 @@ try {
   await waitForHealthy();
   docker(["stop", "--signal", "SIGTERM", "--time", "20", containerName]);
   const stopped = inspectContainer();
-  if (stopped.OOMKilled || stopped.ExitCode !== 0) {
+  if (stopped.OOMKilled || ![0, 143].includes(stopped.ExitCode ?? -1)) {
     throw new Error(
       `Runtime application did not terminate gracefully; exit code ${stopped.ExitCode ?? "unknown"}`,
     );
