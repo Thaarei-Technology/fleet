@@ -49,7 +49,7 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 - [ ] Dokploy 0.30.5 passes the disposable adapter contract suite.
 - [x] New project is isolated; only web is public at the selected hostname.
 - [ ] DNS, direct-origin TLS, Cloudflare proxy, and public-port checks pass.
-- [ ] Database roles, repeatable migrations, worker dispatch, identity flows,
+- [x] Database roles, repeatable migrations, worker dispatch, identity flows,
   tenant isolation, and Valkey fail-closed behavior pass.
 - [ ] Candidate A/B deployment, rollback to A, and forward deployment pass.
 - [ ] Synthetic R2 backup and separate-database restore pass.
@@ -111,6 +111,18 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   `sha256:40ca9e94a2787880078848e6d1af47feca5d7cae067329396c1429742b2c4d8f`
   and `0001_p1-database-foundation.sql`
   `sha256:d3c5dc75493b98f8359d01e4a27caf52633450a30645273b725e25a5219e3e16`.
+- Corrected Fleet main workflow run `34154217805` passed all four build jobs,
+  exact-image Trivy scans, runtime hardening, SBOM generation, and attestations
+  for merged source commit `79ab5fc202b741e8b6afe06b3c8f3cc18f32a765`.
+  Corrected immutable digests are:
+  - web `ghcr.io/thaarei-technology/fleet-web@sha256:96072fb60fb1976903345e95c54728a072b3b2f918c8d19bf0af6378344c9ffb`
+  - API `ghcr.io/thaarei-technology/fleet-api@sha256:d2563523ba3066ff9809b6a8b03fed621f8f02acbca7ca1c0d724ac205deec82`
+  - worker `ghcr.io/thaarei-technology/fleet-worker@sha256:1b373b732d4817656b026f1f9da75a42f156f15be29ed396a8cb347ea10f3c27`
+  - migration `ghcr.io/thaarei-technology/fleet-migration@sha256:ff6ab31f831969feb03347e35389cd1278165300119676921ed2f6a2e1a8aad7`
+- Corrected release-evidence artifact IDs are web `10030470581`, API
+  `10030463730`, worker `10030461208`, and migration `10030454035`.
+  SPDX SBOM artifact IDs are web `10030454301`, API `10030448080`, worker
+  `10030445197`, and migration `10030439648`.
 - Dokploy API qualification evidence: v0.30.5 and OpenAPI 3.1 verified;
   application inspection, empty `deployment.all` (HTTP 204), and failure
   reporting passed. The isolated registry was updated with the refreshed
@@ -136,9 +148,46 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   `API_INTERNAL_URL` was correct. Fleet now relies on its existing runtime
   App Router proxy handlers; a new four-image release is required before
   user-facing identity qualification.
-- DNS-only web domain remains `staging-fleet.thaarei.com` -> `151.185.47.72`;
-  HTTPS and Cloudflare proxy are intentionally not enabled before the private
-  image gate passes.
+- The corrected web digest is active and the web runtime API target is
+  `fleet-staging-api-4cpzuy` (the actual Dokploy service DNS name). Direct
+  origin `/`, `/trpc/health`, and `/api/auth/get-session` return 200.
+- DNS `staging-fleet.thaarei.com` resolves to `151.185.47.72`. Dokploy now
+  serves a Let’s Encrypt certificate directly on that origin (CN/SAN matches
+  the hostname, issuer Let’s Encrypt, validity observed through 2026-12-06),
+  and HTTP redirects to HTTPS. The Cloudflare-proxied leg remains open.
+- All six Fleet services have zero published Docker ports; only the web
+  application has the Dokploy domain. API, worker, Mailpit, PostgreSQL, and
+  Valkey remain private on the Dokploy network.
+- Live HTTPS synthetic identity proof passed: signup, Mailpit verification,
+  sign-in, session listing, individual session revocation, password recovery,
+  reset-session revocation, old-password rejection, and new-password sign-in.
+  Two seeded synthetic organizations were listed and switched; viewer access
+  succeeded for each member organization and a non-member switch returned 403.
+- Live worker proof passed with a disposable outbox event submitted twice:
+  the event was delivered once (`attempt_count=1`, one delivery receipt) and
+  both idempotent workflow records completed.
+- Live P1 database proof passed: the four roles have the expected login,
+  superuser, and bypass-RLS attributes; API and worker DDL probes were denied,
+  the migrator DDL probe was allowed inside a rolled-back transaction, and
+  RLS returned one row for the selected organization and zero rows for the
+  other organization. The corrected migration ran and a repeat run remained
+  checksum-stable.
+- Valkey outage proof passed: API readiness degraded and the auth rate limiter
+  failed closed with 429 while Valkey was stopped, then recovered after the
+  service returned. API, worker, PostgreSQL, and Valkey restart recovery all
+  returned to ready state.
+- Security request probes passed: invalid origin 403, malformed JSON 400,
+  oversized body 413, and forwarded-header probe did not bypass the route
+  boundary. Web, API, worker, and Mailpit were additionally hardened in the
+  live Swarm services with non-root images, read-only roots, `ALL` capability
+  drop, `/tmp` tmpfs, and the configured memory/CPU ceilings. Dokploy 0.30.5
+  does not expose these hardening fields in its application API, so this live
+  control is not yet represented in the generated service definition.
+- Synthetic PostgreSQL backup completed to the existing R2 destination:
+  backup `2bwx29SVB3xWJJxm73EOm`, execution `H7YE8NVe7MVwHW9oZZrqo`, and
+  Fleet-only object
+  `fleet-staging-postgres-ctuuws/fleet-staging-qualification-001/2026-09-07T19-37-31-932Z.sql.gz`
+  (16,156 bytes). Disposable restore evidence is still open.
 - Starter generator regression fix adds role bootstrap before the all-server
   fixture migration run; local typecheck and initializer tests pass.
 - Never record secret values or full connection strings.
@@ -162,6 +211,15 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   immutable deploy and rollback tests. Direct provider deployment avoids the
   mirror for normal pulls, but registry-backed rollback still fails because
   the credential cannot push rollback copies.
+- The VM-side operator file has not changed since the previous credential
+  rotation. The registry test and image pulls succeed, but Dokploy rollback
+  copies still fail with a registry `permission_denied` scope error. A VM-side
+  GHCR token with `read:packages`, `write:packages`, private-repository access,
+  and required organization SSO is still needed; do not paste it into chat.
+- Dokploy 0.30.5 exposes no restore procedure in its OpenAPI document; the R2
+  backup exists and can be browsed through the API, but restore into a separate
+  database still needs the Dokploy UI/workflow or an explicitly authorized
+  provider-level restore path.
 - Local DevX dependency installation is blocked by the separate private npm
   package credential returning HTTP 401; protected CI is passing.
 - Browser automation is not currently attached; interactive user-facing proof
