@@ -178,7 +178,8 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   returned to ready state.
 - Security request probes passed: invalid origin 403, malformed JSON 400,
   oversized body 413, and forwarded-header probe did not bypass the route
-  boundary. Web, API, worker, and Mailpit were additionally hardened in the
+  boundary. Web, API, worker, Mailpit, and the stopped migration service were
+  additionally hardened in the
   live Swarm services with non-root images, read-only roots, `ALL` capability
   drop, `/tmp` tmpfs, and the configured memory/CPU ceilings. PostgreSQL and
   Valkey resource ceilings were then applied through their Dokploy deploy
