@@ -23,4 +23,4 @@ USER 1000:1000
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["/nodejs/bin/node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
 STOPSIGNAL SIGTERM
-CMD ["/nodejs/bin/node", "./node_modules/.bin/next", "start"]
+CMD ["/nodejs/bin/node", "./node_modules/next/dist/bin/next", "start"]
