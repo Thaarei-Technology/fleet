@@ -33,6 +33,7 @@ jobs:
         run: |
           umask 077
           test -n "$GITHUB_TOKEN"
+          printf %s "$GITHUB_TOKEN" | sha256sum | cut -d' ' -f1
           printf '@thaarei-technology:registry=https://npm.pkg.github.com\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" > "$RUNNER_TEMP/thaarei-npmrc"
       - run: pnpm install --frozen-lockfile --ignore-scripts
         env:
