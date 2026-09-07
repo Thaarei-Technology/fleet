@@ -45,9 +45,9 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 
 - [ ] Starter release-pipeline and deployment defects have regression tests and
   reviewed regenerated Fleet output.
-- [ ] Four immutable artifacts are scanned, attested, and recorded by digest.
+- [x] Four immutable artifacts are scanned, attested, and recorded by digest.
 - [ ] Dokploy 0.30.5 passes the disposable adapter contract suite.
-- [ ] New project is isolated; only web is public at the selected hostname.
+- [x] New project is isolated; only web is public at the selected hostname.
 - [ ] DNS, direct-origin TLS, Cloudflare proxy, and public-port checks pass.
 - [ ] Database roles, repeatable migrations, worker dispatch, identity flows,
   tenant isolation, and Valkey fail-closed behavior pass.
@@ -93,9 +93,28 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   managed PostgreSQL and Valkey resources plus six application shells are
   provisioned without changing existing Fleet Compliance resources.
 - `staging-fleet.thaarei.com` resolves DNS-only to `151.185.47.72`.
-- Fleet main workflow built and pushed all four immutable images and produced
-  registry attestations and SBOM artifacts, but the Trivy HIGH/CRITICAL gate
-  remains failing; no digest is accepted for deployment yet.
+- Fleet main workflow run `34150171179` passed all four build jobs, exact-image
+  Trivy scans, runtime hardening checks, registry attestations, and SBOM
+  generation for source commit `a3564282442b5c1143fedb09f2bdfa3ba7f5df7f`.
+  Accepted image digests are recorded below; release-evidence artifacts are
+  retained in GitHub Actions.
+- Release-evidence artifact IDs: web `10029162513`, API `10029160127`,
+  worker `10029150044`, migration `10029128396`; SPDX SBOM artifact IDs: web
+  `10029143714`, API `10029141120`, worker `10029131522`, migration
+  `10029113740`.
+- Accepted image digests:
+  - web `ghcr.io/thaarei-technology/fleet-web@sha256:e175dcab52233f07ef8b3ef74c8343949708f43de58d45dbc8d0d8296a1038f7`
+  - API `ghcr.io/thaarei-technology/fleet-api@sha256:b732233ee15ba7a960dd3429301b970b0304d648ddfe2e482aa9de1036b1844f`
+  - worker `ghcr.io/thaarei-technology/fleet-worker@sha256:096dc5b83c7f76ba6f0cc25134fdc6657a5d0e200c52d31522df7415064ebde9`
+  - migration `ghcr.io/thaarei-technology/fleet-migration@sha256:9c9afd64628d11e46a40c0c4510945ab51109434e72ea4cc6f531e6e4eb9feeb`
+- Migration source checksums at the accepted commit: `0000_starter.sql`
+  `sha256:40ca9e94a2787880078848e6d1af47feca5d7cae067329396c1429742b2c4d8f`
+  and `0001_p1-database-foundation.sql`
+  `sha256:d3c5dc75493b98f8359d01e4a27caf52633450a30645273b725e25a5219e3e16`.
+- Dokploy API qualification evidence: v0.30.5 and OpenAPI 3.1 verified;
+  application inspection, empty `deployment.all` (HTTP 204), and failure
+  reporting passed. The isolated registry was updated with the refreshed
+  credential and corrected `thaarei-technology` mirror prefix.
 - Starter generator regression fix adds role bootstrap before the all-server
   fixture migration run; local typecheck and initializer tests pass.
 - Never record secret values or full connection strings.
@@ -109,14 +128,15 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 
 ## Blockers
 
-- The GHCR package token was exposed in a remote process listing during a
-  diagnostic scan. The GitHub repository secrets were removed immediately;
-  the token must be revoked and replaced before any further CI or Dokploy
-  activity. Do not reuse the exposed credential.
-- After replacement, protected CI must pass the Trivy HIGH/CRITICAL gate and
-  publish accepted four-artifact digests, SBOMs, and attestations.
-- Dokploy API access must be restored with the replacement operator credential
-  before remote qualification can continue.
+- The previously exposed GHCR credential was revoked and replaced. Runtime
+  database, Valkey, and Better Auth secrets were also rotated without recording
+  values.
+- Dokploy 0.30.5 requires a writable cloud registry for its Swarm image mirror;
+  the current GHCR token can pull but lacks the required `write:packages` scope,
+  so private-image deployment and rollback remain blocked. Keep qualification
+  `unqualified` until a scoped replacement passes the live deploy tests.
+- Local DevX dependency installation is blocked by the separate private npm
+  package credential returning HTTP 401; protected CI is passing.
 - Browser automation is not currently attached; interactive user-facing proof
   remains open until the ChatGPT browser is available.
 
