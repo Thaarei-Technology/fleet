@@ -40,7 +40,9 @@ const request = async (path: string, init?: RequestInit): Promise<unknown> => {
     headers: { "content-type": "application/json", "x-api-key": apiKey, ...init?.headers },
   });
   if (!response.ok) throw new Error(`Dokploy ${path} failed with HTTP ${response.status}`);
-  return response.json();
+  if (response.status === 204) return [];
+  const content = await response.text();
+  return content ? JSON.parse(content) : null;
 };
 type JsonRecord = Record<string, unknown>;
 type ApplicationState = { readonly dockerImage: string; readonly applicationStatus: string };
