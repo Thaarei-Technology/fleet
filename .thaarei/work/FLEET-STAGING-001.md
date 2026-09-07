@@ -5,7 +5,7 @@ origin: docs/IMPLEMENTATION_PLAN.md#fleet-staging-001
 status: in_progress
 owner: Nishanth
 createdAt: 2026-09-07
-updatedAt: 2026-09-07
+updatedAt: 2026-09-08
 sourceOfTruthIds: []
 affectedPaths:
   - .github/workflows/supply-chain.yml
@@ -115,6 +115,13 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   application inspection, empty `deployment.all` (HTTP 204), and failure
   reporting passed. The isolated registry was updated with the refreshed
   credential and corrected `thaarei-technology` mirror prefix.
+- Disposable private-image deploys pulled by digest/tag but failed in
+  Dokploy's Swarm mirror step until registry write scope is supplied. The
+  failed test records were retained by Dokploy; application definitions were
+  restored to their original image references and all applications are idle.
+- DNS-only web domain remains `staging-fleet.thaarei.com` -> `151.185.47.72`;
+  HTTPS and Cloudflare proxy are intentionally not enabled before the private
+  image gate passes.
 - Starter generator regression fix adds role bootstrap before the all-server
   fixture migration run; local typecheck and initializer tests pass.
 - Never record secret values or full connection strings.
