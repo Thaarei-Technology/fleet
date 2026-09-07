@@ -8,7 +8,7 @@ Canonical records: `.thaarei/work/*.md`.
 
 - Status: in_progress
 - Owner: Nishanth
-- Updated: 2026-09-07
+- Updated: 2026-09-08
 - Paths: .github/workflows/supply-chain.yml, deployment/dokploy, docs, .thaarei, docker, packages/database
 
 ## INIT-001: Initialize Thaarei Fleet
