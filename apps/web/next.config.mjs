@@ -1,5 +1,3 @@
-import type { NextConfig } from "next";
-
 const headers = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -10,7 +8,8 @@ const headers = [
     : []),
 ];
 
-const config: NextConfig = {
+/** @type {import("next").NextConfig} */
+const config = {
   poweredByHeader: false,
   // 127.0.0.1/localhost cover native local dev. *.localhost covers the
   // platform-VM DevX hostname fleet-frontend-<instance>.localhost, which the
