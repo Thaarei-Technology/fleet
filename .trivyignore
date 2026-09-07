@@ -1,0 +1,19 @@
+# Trivy filesystem-scan exceptions for thaarei-security fs.
+#
+# WHAT: suppresses the single restricted-license finding that fails
+# `pnpm security:fs` (trivy fs --scanners vuln,license --severity HIGH,CRITICAL).
+# Finding: @img/sharp-libvips-darwin-x64, LGPL-3.0-or-later, restricted, HIGH.
+#
+# WHY: next@16.3.1 declares sharp@0.35.4 as an OPTIONAL dependency for
+# next/image optimization; sharp pulls per-platform optional
+# @img/sharp-libvips-* binaries (all `optional: true` in pnpm-lock.yaml).
+# Production images (apps/api, apps/web, apps/worker Dockerfiles) are
+# Linux-only and never ship the darwin-x64 binary, but Trivy scans every
+# lockfile entry regardless of platform. The wrapper offers no
+# --ignored-licenses passthrough, and text-format .trivyignore matches by
+# license ID, so this suppresses only LGPL-3.0-or-later (currently one package).
+#
+# Revisit if a non-optional production dependency introduces a restricted
+# license; do not extend this file for HIGH/CRITICAL CVEs without a separate
+# risk-recorded decision.
+LGPL-3.0-or-later

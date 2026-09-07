@@ -4,6 +4,13 @@
 
 Canonical records: `.thaarei/work/*.md`.
 
+## FLEET-P1-SECSCAN: Fix PR #2 security scan license failure
+
+- Status: in_progress
+- Owner: Nishanth
+- Updated: 2026-09-07
+- Paths: .trivyignore
+
 ## INIT-001: Initialize Thaarei Fleet
 
 - Status: in_progress
