@@ -1,6 +1,13 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import postgres from "postgres";
+
+try {
+  process.loadEnvFile(resolve(process.cwd(), ".env"));
+} catch (error: unknown) {
+  if (!(error instanceof Error) || !("code" in error && error.code === "ENOENT")) throw error;
+}
 
 const adminUrl = process.env.DATABASE_ADMIN_URL;
 const credentialsFile = process.env.DATABASE_CREDENTIALS_FILE;
@@ -93,8 +100,8 @@ const serviceUrl = (role: string, password: string): string => {
 };
 const output =
   [
-    `DATABASE_API_URL=${serviceUrl("starter_api", passwords.api)}`,
-    `DATABASE_WORKER_URL=${serviceUrl("starter_worker", passwords.worker)}`,
+    `API_DATABASE_URL=${serviceUrl("starter_api", passwords.api)}`,
+    `WORKER_DATABASE_URL=${serviceUrl("starter_worker", passwords.worker)}`,
     `MIGRATOR_DATABASE_URL=${serviceUrl("starter_migrator", passwords.migrator)}`,
     "DATABASE_OWNER_ROLE=starter_owner",
     "DATABASE_WORKER_ROLE=starter_worker",
