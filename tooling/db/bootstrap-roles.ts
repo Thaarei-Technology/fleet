@@ -71,7 +71,7 @@ for (const [role, attributes, password] of roles) {
   if (exists.length === 0) await sql.unsafe(`CREATE ROLE ${quote(role)} ${attributes}`);
   if (password) {
     const rows = await sql.unsafe(
-      "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS', $1, $2) AS statement",
+      "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS', $1::text, $2::text) AS statement",
       [role, password],
     );
     const statement = rows[0]?.statement;
