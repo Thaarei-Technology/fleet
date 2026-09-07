@@ -227,6 +227,10 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   backup exists and can be browsed through the API, but restore into a separate
   database still needs the Dokploy UI/workflow or an explicitly authorized
   provider-level restore path.
+- Dokploy 0.30.5's application API and Swarm update surface do not expose the
+  `no-new-privileges` security option declared by the service contract. The
+  live qualification therefore proves non-root, read-only-root, capability
+  drop, tmpfs, and resource controls, but not that additional kernel flag.
 - Local DevX dependency installation is blocked by the separate private npm
   package credential returning HTTP 401; protected CI is passing.
 - Browser automation is not currently attached; interactive user-facing proof
