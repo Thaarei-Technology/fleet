@@ -2,15 +2,15 @@
 workId: INIT-001
 title: "Initialize Thaarei Fleet"
 origin: starter:init
-status: in_progress
+status: complete
 owner: "Nishanth"
 createdAt: 2026-08-19
-updatedAt: 2026-08-19
+updatedAt: 2026-09-07
 sourceOfTruthIds: []
 affectedPaths:
-  - apps/
-  - packages/
-  - deployment/
+  - .thaarei/project.json
+  - .thaarei/capabilities.json
+  - release-manifest.json
 ---
 
 # Initialize Thaarei Fleet
@@ -29,12 +29,14 @@ Live production deployment without separate approval and evidence.
 
 ## Acceptance criteria
 
-- [ ] Local checks pass.
-- [ ] Selected deployment gates have evidence.
+- [x] Generated project metadata and selected capability profiles are recorded.
+- [x] P0 and P1 foundation checks have evidence in their canonical work records.
 
 ## Validation
 
-Pending.
+P0 and P1 validation is recorded in FLEET-P1.md, FLEET-P1-FIXES.md, and
+FLEET-P1-SECSCAN.md. Live staging qualification is tracked separately in
+FLEET-STAGING-001.
 
 ## Evidence
 
@@ -46,7 +48,8 @@ Deployment target: dokploy.
 
 ## Blockers
 
-Live deployment and native mobile gates require their target environments.
+No blocker remains for this initialization record. Live staging, recovery,
+provider, and production gates are outside this record.
 
 ## Handoff
 
@@ -54,4 +57,5 @@ Nishanth owns technical validation. Nishanth owns operational validation.
 
 ## Completion
 
-Incomplete.
+Complete as of 2026-09-07. Subsequent staging qualification owns its own
+environment and deployment evidence.
