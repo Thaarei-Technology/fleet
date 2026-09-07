@@ -4,12 +4,19 @@
 
 Canonical records: `.thaarei/work/*.md`.
 
-## INIT-001: Initialize Thaarei Fleet
+## FLEET-STAGING-001: Qualify Fleet P1 on Dokploy synthetic staging
 
 - Status: in_progress
 - Owner: Nishanth
-- Updated: 2026-08-19
-- Paths: apps/, packages/, deployment/
+- Updated: 2026-09-07
+- Paths: .github/workflows/supply-chain.yml, deployment/dokploy, docs, .thaarei, docker, packages/database
+
+## INIT-001: Initialize Thaarei Fleet
+
+- Status: complete
+- Owner: Nishanth
+- Updated: 2026-09-07
+- Paths: .thaarei/project.json, .thaarei/capabilities.json, release-manifest.json
 
 ## FLEET-P1-SECSCAN: Fix PR #2 security scan license failure
 
@@ -31,3 +38,9 @@ Canonical records: `.thaarei/work/*.md`.
 - Owner: Nishanth
 - Updated: 2026-09-07
 - Paths: apps, packages, docker, .github, .thaarei, release-manifest.json, pnpm-lock.yaml, vitest.config.ts
+
+## FLEET-OPS-MON-001: Platform VM memory monitoring setup
+
+- Status: complete
+- Owner: Nishanth
+- Updated: 2026-09-07

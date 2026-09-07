@@ -955,6 +955,35 @@ Handoff: P01 records source import evidence, actual scripts and paths, the
 application profile, browser results, and foundation tests. Synchronize the
 generated execution dashboard from the work record.
 
+### Fleet staging qualification — FLEET-STAGING-001
+
+Window: September 2026, after P1 and before P2.
+
+Objective: qualify the P1 foundation on an isolated Dokploy project using
+synthetic data before feature development continues.
+
+The project is `Thaarei Fleet` in Dokploy environment `staging`. Web is public
+at `staging-fleet.thaarei.com`; API, worker, PostgreSQL, Valkey, and Mailpit
+remain private. The runtime uses `APP_ENV=ci` and Mailpit, so this phase does
+not qualify ZeptoMail or real customer processing. Cloudflare and the existing
+R2 destination are accepted for synthetic staging only.
+
+Allowed write scope: the starter generator and its tests for reusable release
+or deployment defects, Fleet release workflows and deployment definitions,
+the staging work record, and deployment documentation. No P2 product work or
+changes to existing Fleet Compliance services are allowed.
+
+Required evidence includes four immutable image digests, Dokploy 0.30.5 API
+qualification, role-safe migrations, web/API/worker readiness, identity and
+tenant tests, Valkey failure and recovery, DNS/TLS, candidate rollback,
+synthetic R2 backup and disposable restore, resource coexistence, and
+on-demand shutdown. Complete details and execution evidence live in
+`.thaarei/work/FLEET-STAGING-001.md`.
+
+Handoff: P2 may start only after the staging record and generated dashboard are
+complete. ZeptoMail, India-hosted recovery, ULIP, privacy, customer data, and
+production gates remain open.
+
 ### P2 — Fleet, location, and vehicle registry
 
 Window: October, weeks 1–2, 2026.
@@ -1284,7 +1313,8 @@ Do not mark P9 complete at first deployment if its hypercare remains unfinished.
 | Phase                                                | Window                       | Current status | Next phase                 |
 | ---------------------------------------------------- | ---------------------------- | -------------- | -------------------------- |
 | P0 Scope and starter prerequisites                   | Sep weeks 1–2, 2026         | Complete (accepted 2026-09-07) | P1 (authorized, not started) |
-| P1 Bootstrap and Fleet DevX foundation               | Sep weeks 3–4, 2026         | Not started    | P2                         |
+| P1 Bootstrap and Fleet DevX foundation               | Sep weeks 3–4, 2026         | Complete (accepted 2026-09-07) | Fleet staging qualification |
+| Fleet staging qualification (FLEET-STAGING-001)      | After P1, before P2         | In progress    | P2                         |
 | P2 Fleet, location, vehicle registry                 | Oct weeks 1–2, 2026         | Not started    | P3                         |
 | P3 Drivers, links, CSV onboarding                    | Oct weeks 3–4, 2026         | Not started    | P4                         |
 | P4 ULIP gateway and emulators                        | Nov weeks 1–2, 2026         | Not started    | P5                         |

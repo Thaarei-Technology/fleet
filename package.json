@@ -9,10 +9,11 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev:deps": "docker compose up -d",
+    "dev:deps": "docker compose up -d --wait --wait-timeout 120",
     "dev": "pnpm dev:deps && turbo run dev --parallel",
     "dev:full": "pnpm dev:deps && turbo run dev --parallel",
     "dev:down": "docker compose down --remove-orphans",
+    "db:bootstrap-roles": "tsx tooling/db/bootstrap-roles.ts",
     "dev:clean": "tsx tooling/dev-clean.ts",
     "dev:api": "pnpm --filter @thaarei/api-app dev",
     "dev:web": "pnpm --filter @thaarei/web-app dev",

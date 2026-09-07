@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: {"include":[{"application":"web","dockerfile":"apps/web/Dockerfile"},{"application":"api","dockerfile":"apps/api/Dockerfile"},{"application":"worker","dockerfile":"apps/worker/Dockerfile"}]}
+      matrix: {"include":[{"application":"web","dockerfile":"apps/web/Dockerfile"},{"application":"api","dockerfile":"apps/api/Dockerfile"},{"application":"worker","dockerfile":"apps/worker/Dockerfile"},{"application":"migration","dockerfile":"packages/database/Dockerfile"}]}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
@@ -39,8 +39,11 @@ jobs:
       - run: pnpm validate:starter
       - name: Start disposable runtime dependencies
         run: cp .env.example .env && pnpm dev:deps
+      - name: Bootstrap database roles
+        run: pnpm db:bootstrap-roles
       - name: Apply reviewed migrations for runtime inspection
-        run: pnpm db:migrate
+        shell: bash
+        run: set -a; . .artifacts/database-credentials.env; set +a; pnpm db:migrate
       - name: Record dependency vulnerability report
         run: pnpm audit --prod --json > dependency-vulnerabilities.json
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
@@ -90,6 +93,7 @@ jobs:
           TRIVY_PASSWORD: ${{ github.token }}
         run: pnpm security:sbom -- "${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}"
       - name: Inspect runtime hardening and image contents
+        if: matrix.application != 'migration'
         run: pnpm runtime:inspect -- "${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}" "${{ matrix.application }}"
       - name: Record immutable application digest
         shell: bash
@@ -107,4 +111,3 @@ jobs:
           retention-days: 30
       - if: always()
         run: pnpm dev:down
-

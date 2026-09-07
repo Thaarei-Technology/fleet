@@ -1,7 +1,7 @@
 {
   "controlPlane": "dokploy",
   "serverVersion": {
-    "candidate": "0.29.5",
+    "candidate": "0.30.5",
     "qualification": "unqualified"
   },
   "repository": {
@@ -68,7 +68,7 @@
         "resourceLimitsRequiredBeforeProduction": true
       },
       "domain": {
-        "required": true,
+        "required": false,
         "provider": "dokploy-traefik"
       }
     },
