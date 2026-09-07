@@ -17,6 +17,8 @@ LABEL org.opencontainers.image.source="generated-private-repository" \
       org.opencontainers.image.revision="$SOURCE_COMMIT"
 WORKDIR /app
 COPY --from=build --chown=1000:1000 /runtime/ ./
+# npm is not part of the runtime contract; remove its bundled dependency tree.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 USER 1000:1000
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["node", "-e", "fetch('http://127.0.0.1:3001/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]

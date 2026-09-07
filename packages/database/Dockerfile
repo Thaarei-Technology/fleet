@@ -18,6 +18,8 @@ LABEL org.opencontainers.image.source="generated-private-repository" \
       org.opencontainers.image.revision="$SOURCE_COMMIT"
 WORKDIR /app
 COPY --from=build --chown=1000:1000 /runtime/ ./
+# npm is not part of the runtime contract; remove its bundled dependency tree.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 USER 1000:1000
 STOPSIGNAL SIGTERM
 CMD ["node", "dist/migrate.js"]
