@@ -3,8 +3,10 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 
-const image = process.argv[2];
-const application = process.argv[3] as "web" | "api" | "worker" | "python" | undefined;
+const argumentsList = process.argv.slice(2);
+if (argumentsList[0] === "--") argumentsList.shift();
+const image = argumentsList[0];
+const application = argumentsList[1] as "web" | "api" | "worker" | "python" | undefined;
 if (!image || !/@sha256:[a-f0-9]{64}$/u.test(image))
   throw new Error("runtime:inspect requires an immutable image reference");
 const applications = {
