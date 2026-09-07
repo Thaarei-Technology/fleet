@@ -115,10 +115,27 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   application inspection, empty `deployment.all` (HTTP 204), and failure
   reporting passed. The isolated registry was updated with the refreshed
   credential and corrected `thaarei-technology` mirror prefix.
-- Disposable private-image deploys pulled by digest/tag but failed in
-  Dokploy's Swarm mirror step until registry write scope is supplied. The
-  failed test records were retained by Dokploy; application definitions were
-  restored to their original image references and all applications are idle.
+- Disposable private-image deploys now authenticate successfully through the
+  refreshed VM-side registry credential: Dokploy's registry test passes and
+  the Swarm mirror reaches `Registry Login Success`. The exact-digest deploy
+  still fails in Dokploy 0.30.5 after the pull, because its mirror attempts
+  `docker tag <image>@<digest> <image>@<digest>` and Docker rejects a digest
+  reference as a tag. The failed test record is retained by Dokploy; the
+  migration definition was restored and the application was stopped back to
+  idle.
+- The direct Docker-provider path (with each app's registry association
+  removed) successfully pulled and deployed the migration, API, worker, and
+  web release digests. The migration table contains both expected checksums;
+  a repeat migration deployment completed without adding a migration. API and
+  worker readiness returned 200, and the web origin returned 200. Dokploy CPU
+  ceilings were corrected to raw nano-CPU strings (`500000000`, `1000000000`,
+  and `250000000`) after its initial `1e-09` validation error.
+- The first web artifact exposed a deployment defect: its build-time Next
+  rewrite had baked `http://127.0.0.1:3001` into the route manifest, so
+  `/trpc` and `/api/auth` returned 500 even though the runtime
+  `API_INTERNAL_URL` was correct. Fleet now relies on its existing runtime
+  App Router proxy handlers; a new four-image release is required before
+  user-facing identity qualification.
 - DNS-only web domain remains `staging-fleet.thaarei.com` -> `151.185.47.72`;
   HTTPS and Cloudflare proxy are intentionally not enabled before the private
   image gate passes.
@@ -139,9 +156,12 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   database, Valkey, and Better Auth secrets were also rotated without recording
   values.
 - Dokploy 0.30.5 requires a writable cloud registry for its Swarm image mirror;
-  the current GHCR token can pull but lacks the required `write:packages` scope,
-  so private-image deployment and rollback remain blocked. Keep qualification
-  `unqualified` until a scoped replacement passes the live deploy tests.
+  the refreshed VM-side credential now passes that registry login, but exact
+  digest deployment remains blocked by Dokploy's digest-reference tagging bug.
+  Keep qualification `unqualified` until a supported 0.30.5 path completes the
+  immutable deploy and rollback tests. Direct provider deployment avoids the
+  mirror for normal pulls, but registry-backed rollback still fails because
+  the credential cannot push rollback copies.
 - Local DevX dependency installation is blocked by the separate private npm
   package credential returning HTTP 401; protected CI is passing.
 - Browser automation is not currently attached; interactive user-facing proof
