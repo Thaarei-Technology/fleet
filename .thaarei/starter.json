@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "generatorVersion": "1.0.0-dev.1",
+  "application": {
+    "id": "thaarei-fleet",
+    "displayName": "Thaarei Fleet",
+    "packageScope": "@thaarei",
+    "owners": {
+      "technical": "Nishanth",
+      "operations": "Nishanth"
+    }
+  },
+  "preset": null,
+  "requestedProfiles": [
+    "web",
+    "api",
+    "data",
+    "identity",
+    "tenancy",
+    "jobs",
+    "events",
+    "cache",
+    "rate-limit"
+  ],
+  "resolvedProfiles": [
+    {
+      "id": "web",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "api",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "data",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "identity",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "tenancy",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "jobs",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "events",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "cache",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    },
+    {
+      "id": "rate-limit",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified"
+    }
+  ],
+  "deployment": {
+    "target": "dokploy",
+    "topology": "standard"
+  },
+  "environments": ["local", "ci", "staging", "production"],
+  "providers": {
+    "paymentProviders": [],
+    "aiProviders": [],
+    "identityMailProvider": "resend",
+    "notificationProvider": null,
+    "cacheProvider": null,
+    "observabilityExporters": []
+  },
+  "recipeHash": "sha256:0836e9d08b90712697156c1642974a03caba5a11c666128c1522249f6c79ae0b",
+  "generatedTreeHash": "sha256:7fd44b64af48fdfd973848deb4627c0ba86eb663a7298dc3c2c95f1bb12cc59e",
+  "generatedAt": "2026-09-07T04:03:20.387Z"
+}

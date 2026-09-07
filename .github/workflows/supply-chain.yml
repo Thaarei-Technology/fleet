@@ -1,0 +1,110 @@
+name: Build and attest immutable images
+
+on:
+  workflow_call:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: {"include":[{"application":"web","dockerfile":"apps/web/Dockerfile"},{"application":"api","dockerfile":"apps/api/Dockerfile"},{"application":"worker","dockerfile":"apps/worker/Dockerfile"}]}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with:
+          version: 11.22.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Prepare private registry authentication
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          umask 077
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" > "$RUNNER_TEMP/thaarei-npmrc"
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/thaarei-npmrc
+      - run: pnpm validate:starter
+      - name: Start disposable runtime dependencies
+        run: cp .env.example .env && pnpm dev:deps
+      - name: Apply reviewed migrations for runtime inspection
+        run: pnpm db:migrate
+      - name: Record dependency vulnerability report
+        run: pnpm audit --prod --json > dependency-vulnerabilities.json
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - id: image
+        shell: bash
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-${{ matrix.application }}" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.image.outputs.image }}:${{ github.sha }}
+          build-args: |
+            SOURCE_COMMIT=${{ github.sha }}
+            IMAGE_VERSION=0.1.0-dev.1
+          secrets: |
+            npmrc=${{ runner.temp }}/thaarei-npmrc
+      - uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
+        with:
+          image: ${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          artifact-name: sbom-${{ matrix.application }}.spdx.json
+      - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a
+        with:
+          subject-name: ${{ steps.image.outputs.image }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - name: Verify registry attestation before recording evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify "oci://${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}" --repo "$GITHUB_REPOSITORY"
+      - name: Scan the exact immutable image
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ github.token }}
+        run: pnpm security:image -- "${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}"
+      - name: Generate the exact-image CycloneDX SBOM
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ github.token }}
+        run: pnpm security:sbom -- "${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}"
+      - name: Inspect runtime hardening and image contents
+        run: pnpm runtime:inspect -- "${{ steps.image.outputs.image }}@${{ steps.build.outputs.digest }}" "${{ matrix.application }}"
+      - name: Record immutable application digest
+        shell: bash
+        run: printf '{"application":"%s","image":"%s","digest":"%s","sourceCommit":"%s"}\n' "${{ matrix.application }}" "${{ steps.image.outputs.image }}" "${{ steps.build.outputs.digest }}" "$GITHUB_SHA" > application-image.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-evidence-${{ matrix.application }}
+          path: |
+            application-image.json
+            dependency-vulnerabilities.json
+            sbom.spdx.json
+            .artifacts/security
+            .artifacts/runtime
+          if-no-files-found: error
+          retention-days: 30
+      - if: always()
+        run: pnpm dev:down
+

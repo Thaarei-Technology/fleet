@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "requestedProfiles": [
+    "web",
+    "api",
+    "data",
+    "identity",
+    "tenancy",
+    "jobs",
+    "events",
+    "cache",
+    "rate-limit"
+  ],
+  "profiles": [
+    "web",
+    "api",
+    "data",
+    "identity",
+    "tenancy",
+    "jobs",
+    "events",
+    "cache",
+    "rate-limit"
+  ],
+  "deprecatedAliases": [],
+  "providers": {
+    "paymentProviders": [],
+    "aiProviders": [],
+    "identityMailProvider": "resend",
+    "notificationProvider": null,
+    "cacheProvider": null,
+    "observabilityExporters": []
+  },
+  "environment": [
+    {
+      "name": "IDENTITY_MAIL_PROVIDER",
+      "owner": "api",
+      "required": true,
+      "secret": false,
+      "description": "mailpit locally and in CI; resend in staging and production."
+    },
+    {
+      "name": "IDENTITY_FROM_EMAIL",
+      "owner": "api",
+      "required": true,
+      "secret": false,
+      "description": "Verified sender for identity-only transactional mail."
+    },
+    {
+      "name": "IDENTITY_RESEND_API_KEY",
+      "owner": "api",
+      "required": false,
+      "secret": true,
+      "description": "Required when IDENTITY_MAIL_PROVIDER is resend."
+    },
+    {
+      "name": "IDENTITY_MAILPIT_URL",
+      "owner": "api",
+      "required": false,
+      "secret": false,
+      "description": "Local and CI Mailpit API endpoint."
+    },
+    {
+      "name": "VALKEY_URL",
+      "owner": "api",
+      "required": true,
+      "secret": false,
+      "description": "Redis-compatible Valkey endpoint."
+    }
+  ],
+  "fixtures": [
+    "browser-session",
+    "authentication",
+    "email-verification",
+    "password-recovery",
+    "assurance",
+    "tenant-isolation",
+    "rls",
+    "organization-admin",
+    "worker-retry",
+    "outbox",
+    "inbox",
+    "dead-letter",
+    "cache-ttl",
+    "cache-invalidation",
+    "distributed-rate-limit"
+  ],
+  "localServices": ["mailpit", "valkey"]
+}

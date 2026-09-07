@@ -1,0 +1,115 @@
+{
+  "controlPlane": "dokploy",
+  "serverVersion": {
+    "candidate": "0.29.5",
+    "qualification": "unqualified"
+  },
+  "repository": {
+    "branch": "main",
+    "autoDeployTrigger": "push-to-selected-branch"
+  },
+  "services": [
+    {
+      "name": "web",
+      "source": "apps/web",
+      "dockerfile": "apps/web/Dockerfile",
+      "healthCheck": {
+        "type": "http",
+        "path": "/"
+      },
+      "variables": ["APP_ENV", "NODE_ENV", "PORT", "API_INTERNAL_URL"],
+      "applicationMode": "docker-provider",
+      "imagePromotion": "registry-digest-required",
+      "runtimeSecurity": {
+        "readOnlyRootFilesystem": true,
+        "tmpfs": ["/tmp"],
+        "capabilityDrop": ["ALL"],
+        "noNewPrivileges": true,
+        "resourceLimitsRequiredBeforeProduction": true
+      },
+      "domain": {
+        "required": true,
+        "provider": "dokploy-traefik"
+      }
+    },
+    {
+      "name": "api",
+      "source": "apps/api",
+      "dockerfile": "apps/api/Dockerfile",
+      "healthCheck": {
+        "type": "http",
+        "path": "/health/ready"
+      },
+      "variables": [
+        "APP_ENV",
+        "NODE_ENV",
+        "PORT",
+        "ALLOWED_ORIGINS",
+        "TRUSTED_PROXY_CIDRS",
+        "REQUEST_BODY_LIMIT_BYTES",
+        "RESPONSE_BODY_LIMIT_BYTES",
+        "REQUEST_TIMEOUT_MS",
+        "API_DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "IDENTITY_MAIL_PROVIDER",
+        "IDENTITY_FROM_EMAIL",
+        "IDENTITY_ZEPTOMAIL_API_KEY",
+        "IDENTITY_ZEPTOMAIL_URL",
+        "VALKEY_URL"
+      ],
+      "applicationMode": "docker-provider",
+      "imagePromotion": "registry-digest-required",
+      "runtimeSecurity": {
+        "readOnlyRootFilesystem": true,
+        "tmpfs": ["/tmp"],
+        "capabilityDrop": ["ALL"],
+        "noNewPrivileges": true,
+        "resourceLimitsRequiredBeforeProduction": true
+      },
+      "domain": {
+        "required": true,
+        "provider": "dokploy-traefik"
+      }
+    },
+    {
+      "name": "worker",
+      "source": "apps/worker",
+      "dockerfile": "apps/worker/Dockerfile",
+      "healthCheck": {
+        "type": "http",
+        "path": "/health/ready"
+      },
+      "variables": [
+        "APP_ENV",
+        "NODE_ENV",
+        "WORKER_PORT",
+        "WORKER_DATABASE_URL",
+        "WORKER_CONCURRENCY"
+      ],
+      "applicationMode": "docker-provider",
+      "imagePromotion": "registry-digest-required",
+      "runtimeSecurity": {
+        "readOnlyRootFilesystem": true,
+        "tmpfs": ["/tmp"],
+        "capabilityDrop": ["ALL"],
+        "noNewPrivileges": true,
+        "resourceLimitsRequiredBeforeProduction": true
+      },
+      "domain": {
+        "required": false,
+        "provider": "dokploy-traefik"
+      }
+    }
+  ],
+  "database": {
+    "provider": "managed-postgresql",
+    "variables": ["API_DATABASE_URL", "WORKER_DATABASE_URL", "MIGRATOR_DATABASE_URL"],
+    "notes": "Provision separate NOBYPASSRLS roles per packages/database ownership model (api, worker, migrator). MIGRATOR_DATABASE_URL is used only at deploy/migration time and is never exposed to application processes. DATABASE_URL is a local-only db:migrate fallback and must not be set in staging or production."
+  },
+  "backup": {
+    "required": true,
+    "provider": "s3",
+    "restoreTestRequired": true
+  }
+}
