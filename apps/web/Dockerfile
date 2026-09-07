@@ -6,7 +6,7 @@ RUN corepack enable
 RUN --mount=type=secret,id=npmrc,target=/workspace/.npmrc,required=true \
     pnpm install --frozen-lockfile --ignore-scripts --filter @thaarei/web-app...
 RUN pnpm --filter @thaarei/web-app... build
-RUN pnpm --filter @thaarei/web-app --prod deploy /runtime && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+RUN pnpm --filter @thaarei/web-app --prod deploy /runtime && rm -rf /runtime/.next/types /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:23a384b4596ec311f78ac9c46af2b8cc0ed403d1f9c3c249111266d7f56319db AS runtime
 ENTRYPOINT []
 ENV NODE_ENV=production

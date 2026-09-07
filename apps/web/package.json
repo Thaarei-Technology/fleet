@@ -5,7 +5,7 @@
   "files": [
     ".next",
     "public",
-    "next.config.ts"
+    "next.config.mjs"
   ],
   "scripts": {
     "build": "next build",
