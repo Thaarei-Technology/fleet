@@ -180,9 +180,16 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   oversized body 413, and forwarded-header probe did not bypass the route
   boundary. Web, API, worker, and Mailpit were additionally hardened in the
   live Swarm services with non-root images, read-only roots, `ALL` capability
-  drop, `/tmp` tmpfs, and the configured memory/CPU ceilings. Dokploy 0.30.5
+  drop, `/tmp` tmpfs, and the configured memory/CPU ceilings. PostgreSQL and
+  Valkey resource ceilings were then applied through their Dokploy deploy
+  operations as 1 GiB/1 CPU and 256 MiB/0.25 CPU respectively. Dokploy 0.30.5
   does not expose these hardening fields in its application API, so this live
   control is not yet represented in the generated service definition.
+- Post-deployment coexistence snapshot: the VM reported 14,880 MiB total and
+  9,301 MiB available; Fleet service limits were web 512 MiB/0.5 CPU, API 768
+  MiB/1 CPU, worker 512 MiB/0.5 CPU, PostgreSQL 1 GiB/1 CPU, Valkey 256 MiB/0.25
+  CPU, and Mailpit 256 MiB/0.25 CPU. All services were 1/1 after the resource
+  update and API, worker, and web routes remained ready.
 - Synthetic PostgreSQL backup completed to the existing R2 destination:
   backup `2bwx29SVB3xWJJxm73EOm`, execution `H7YE8NVe7MVwHW9oZZrqo`, and
   Fleet-only object
