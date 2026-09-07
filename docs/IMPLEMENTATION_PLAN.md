@@ -1,6 +1,6 @@
 # Thaarei Fleet pilot implementation plan
 
-Status: execution plan. All phases are **Not started**.
+Status: execution plan. P0 is **Complete** (accepted 2026-09-07, P1 authorized, P1 not started). P1–P9 are **Not started**.
 
 This file is the working plan for the Thaarei Fleet pilot. It converts the
 broader product requirements and technical baseline into a small, ULIP-first
@@ -18,7 +18,8 @@ integration, and release evidence.
 
 ## 0. Start here: authority and read sequence
 
-Read the files in this order before starting any phase:
+Read applicable repository and parent `AGENTS.md` instructions first. Then
+read the files in this order before starting any phase:
 
 1. Read this file, including the phase status table, the scope boundary, and
    the phase selected for the current chat.
@@ -28,7 +29,7 @@ Read the files in this order before starting any phase:
 3. Read [`docs/PRD.md`](PRD.md) for requirement IDs, product authority,
    security requirements, and acceptance language. Use the disposition in
    section 2 of this file when the pilot intentionally narrows a requirement.
-4. Read [`docs/Product and Technical Plan.md`](Product%20and%20Technical%20Plan.md)
+4. Read [`docs/Product and Technical Plan.md`](<Product%20and%20Technical%20Plan.md>)
    for the technical decisions and the relevant section named in the phase.
    Treat it as the broader Version 2 baseline, not as proof that a capability
    already exists in the Fleet checkout.
@@ -50,16 +51,15 @@ the reason and the requirement IDs in the phase work record and handoff.
 
 ### File map
 
-| File or location | Use | Current state |
-| --- | --- | --- |
-| `docs/IMPLEMENTATION_PLAN.md` | Pilot authority, sequence, gates, and handoff rules | This file; created by the planning task |
-| `docs/PRD.md` | Version 2 product requirements and IDs | Existing source; preserve |
-| `docs/Product and Technical Plan.md` | Version 2 decisions and technical baseline | Existing source; preserve |
-| `/Users/nishanth/.codex/devx/profiles/instructions.md` | DevX setup and execution rules | Existing personal file; read before DevX work |
-| `app-starter-kit` pinned checkout | Bootstrap input and generator behavior | External source; inspect in P0 |
-| `IMPLEMENTATION.md` at generated root | Starter-generated work-record rules | Planned output; inspect after bootstrap |
-| `.thaarei/work/FLEET-Pxx.md` | One phase's objective, evidence, and handoff | Planned output; create only after generator contract is known |
-| `docs/PRD.md` and `docs/Product and Technical Plan.md` | Original requirements and decisions | Never overwrite or move |
+| File or location                                         | Use                                                 | Current state                                                 |
+| -------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| `docs/IMPLEMENTATION_PLAN.md`                          | Pilot authority, sequence, gates, and handoff rules | This file; created by the planning task                       |
+| `docs/PRD.md`                                          | Version 2 product requirements and IDs              | Existing source; preserve                                     |
+| `docs/Product and Technical Plan.md`                   | Version 2 decisions and technical baseline          | Existing source; preserve                                     |
+| `/Users/nishanth/.codex/devx/profiles/instructions.md` | DevX setup and execution rules                      | Existing personal file; read before DevX work                 |
+| `app-starter-kit` pinned checkout                      | Bootstrap input and generator behavior              | External source; inspect in P0                                |
+| `IMPLEMENTATION.md` at generated root                  | Generated execution-status dashboard                | Planned output; derive from work records, never hand-edit     |
+| `.thaarei/work/FLEET-Pxx.md`                           | One phase's objective, evidence, and handoff        | Planned output; create only after generator contract is known |
 
 ## 1. Final pilot scope
 
@@ -101,13 +101,13 @@ editable fact.
 
 The pilot has exactly five dataset roles:
 
-| Dataset | Pilot role | Required behavior |
-| --- | --- | --- |
-| `VAHAN/04` | Vehicle verification | Retrieve permitted registration and vehicle facts |
-| `SARATHI/02` | Driver verification | Retrieve permitted licence facts under the approved lookup contract |
-| `FASTAG/02` | FASTag verification | Retrieve permitted tag identifiers, issuer, class, status, and issue facts |
-| `ECHALLAN/01` | Read-only enforcement view | Display returned pending or disposed challan details |
-| `FASTAG/01` | Recent activity view | Display bounded recent toll observations with source timestamps |
+| Dataset         | Pilot role                 | Required behavior                                                          |
+| --------------- | -------------------------- | -------------------------------------------------------------------------- |
+| `VAHAN/04`    | Vehicle verification       | Retrieve permitted registration and vehicle facts                          |
+| `SARATHI/02`  | Driver verification        | Retrieve permitted licence facts under the approved lookup contract        |
+| `FASTAG/02`   | FASTag verification        | Retrieve permitted tag identifiers, issuer, class, status, and issue facts |
+| `ECHALLAN/01` | Read-only enforcement view | Display returned pending or disposed challan details                       |
+| `FASTAG/01`   | Recent activity view       | Display bounded recent toll observations with source timestamps            |
 
 Do not add another dataset in the pilot. Do not automatically fall back to
 `VAHAN/01`, `SARATHI/01`, or another endpoint. Do not use `TOLL/01`. If a
@@ -163,33 +163,53 @@ the entitlement and capacity check server-side. Defer Razorpay, automated
 subscriptions, metering, overage collection, and billing UI unless a later
 phase is explicitly authorized.
 
-Target incremental operating cost at ₹5,000–₹15,000 per month. Measure the
-existing host's allocated cost separately from incremental Fleet cost. Include
-email, registry, recovery storage, traffic, and any ULIP fees in the cost log.
+Target total Fleet operating cost at ₹5,000–₹15,000 per month, excluding
+development staff. Show the existing host's allocated cost and incremental
+Fleet expenditure separately. Include email, registry, recovery storage, and
+traffic. Record ULIP fees separately until written charges are available,
+then reconcile the complete operating estimate before promising the budget.
 
 Support the pilot during Monday–Saturday, 09:00–18:00 IST. The recovery target
 is four covered business hours. An outage outside the window starts the covered
 clock at the next support window. The target does not claim 24x7 response.
+
+The broader 99.5% customer-journey availability objective is an internal
+measured objective for this pilot. It is not an external SLA or customer
+promise. Measure it only after the pilot runtime and journey probes exist.
 
 ## 2. Resolve the old PRD and technical-plan conflicts
 
 The source documents remain intact and useful. The following pilot decisions
 are explicit dispositions, not silent edits.
 
-| Broader requirement or decision | Pilot disposition | What remains mandatory |
-| --- | --- | --- |
-| One product for about 100 organizations, 50,000 assets, and 100,000 drivers | Replace with one customer, 500-asset allowance, and 10–25-vehicle first cohort | Schema and tenant boundaries must not prevent later growth |
-| Document uploads, scanning, encrypted object storage, OCR, evidence review, and credential catalogue | Defer | Data classification, retention, deletion, audit, and source provenance still apply to the records that exist |
-| Compliance engine, reviewed policy packs, findings, cases, tasks, and expiry reminders | Defer | Vehicle category is descriptive only; the UI must label unsupported compliance coverage |
-| Complaints, support case workflows, and external helpdesk processing | Defer product case features | Provide a private operational contact path and keep support access separately authorized |
-| Billing plans, Razorpay, receivables, tax documents, and automatic overages | Defer implementation; use a free pilot allowance | Capacity entitlement remains a server-enforced control and customer terms must state the allowance |
-| Pilot fallbacks to `VAHAN/01`, `SARATHI/01`, and `FASTAG/01` | Remove automatic fallbacks; keep `FASTAG/01` only as its explicit recent-activity role | Dataset selection, quota, provenance, and failure states remain explicit |
-| `TOLL/01` utility or live route interpretation | Defer | Toll observations never become live location, reconstructed route, or complete movement history |
-| Garage, MinIO, upload scanner, second active application host, and full telemetry stack | Defer from the minimal pilot topology | Backup, access, retention, deletion, logs, and recovery controls remain required |
-| Initial production cost of ₹15,000–₹40,000 | Replace with ₹5,000–₹15,000 target | Capacity and recovery evidence override the target if the host cannot safely run the stack |
-| 24x7 staffed critical response | Replace with business-hours support for this pilot | Security reporting, provider terms, and statutory deadlines remain independent of support hours |
-| Universal pan-India compliance coverage | Defer | Store nationwide states and show unsupported rule coverage clearly |
-| Specialized operations as compliance policy cells | Narrow to vehicle categories | Do not market category labels as regulatory decisions |
+This file has pilot precedence for implementation scope. Future agents must
+not recreate the original full Version 2 schema, all 51 evidence gates, four
+Compose projects, or deferred full-MVP test suites. Trace each deferred item
+to its source section or requirement ID, record it as deferred, and preserve
+the controls that apply to the smaller pilot. The original technical
+decisions remain context; they do not automatically inherit every platform
+gate when the pilot does not use the related capability.
+
+| Broader requirement or decision                                                                      | Pilot disposition                                                                       | What remains mandatory                                                                                       |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| One product for about 100 organizations, 50,000 assets, and 100,000 drivers                          | Replace with one customer, 500-asset allowance, and 10–25-vehicle first cohort         | Schema and tenant boundaries must not prevent later growth                                                   |
+| Document uploads, scanning, encrypted object storage, OCR, evidence review, and credential catalogue | Defer                                                                                   | Data classification, retention, deletion, audit, and source provenance still apply to the records that exist |
+| Compliance engine, reviewed policy packs, findings, cases, tasks, and expiry reminders               | Defer                                                                                   | Vehicle category is descriptive only; the UI must label unsupported compliance coverage                      |
+| Complaints, support case workflows, and external helpdesk processing                                 | Defer product case features                                                             | Provide a private operational contact path and keep support access separately authorized                     |
+| Billing plans, Razorpay, receivables, tax documents, and automatic overages                          | Defer implementation; use a free pilot allowance                                        | Capacity entitlement remains a server-enforced control and customer terms must state the allowance           |
+| Pilot fallbacks to`VAHAN/01`, `SARATHI/01`, and `FASTAG/01`                                    | Remove automatic fallbacks; keep`FASTAG/01` only as its explicit recent-activity role | Dataset selection, quota, provenance, and failure states remain explicit                                     |
+| `TOLL/01` utility or live route interpretation                                                     | Defer                                                                                   | Toll observations never become live location, reconstructed route, or complete movement history              |
+| Garage, MinIO, upload scanner, second active application host, and full telemetry stack              | Defer from the minimal pilot topology                                                   | Backup, access, retention, deletion, logs, and recovery controls remain required                             |
+| Initial production cost of ₹15,000–₹40,000                                                        | Replace with ₹5,000–₹15,000 target                                                   | Capacity and recovery evidence override the target if the host cannot safely run the stack                   |
+| 24x7 staffed critical response                                                                       | Replace with business-hours support for this pilot                                      | Security reporting, provider terms, and statutory deadlines remain independent of support hours              |
+| Universal pan-India compliance coverage                                                              | Defer                                                                                   | Store nationwide states and show unsupported rule coverage clearly                                           |
+| Specialized operations as compliance policy cells                                                    | Narrow to vehicle categories                                                            | Do not market category labels as regulatory decisions                                                        |
+
+Apply old security and legal controls to the pilot by context. Keep controls
+that protect tenant records, provider facts, identifiers, access, retention,
+deletion, recovery, and truthful claims. Defer controls whose only purpose is a
+deferred capability, such as binary document-upload scanning, OCR, object
+storage, document evidence review, or full legal-publication workflows.
 
 The following controls are unaffected by scope reduction: organization-level
 tenant isolation, PostgreSQL RLS, server-enforced authorization, authentication
@@ -206,6 +226,32 @@ are complete. “Not ready yet” is a recorded state, not a reason to invent a
 provider response or waive a control.
 
 ## 3. Starter and bootstrap findings
+
+### 3.1 Product identity and selected capabilities
+
+| Setting                        | Planned value                                                  |
+| ------------------------------ | -------------------------------------------------------------- |
+| Display name                   | `Thaarei Fleet`                                              |
+| Product ID and client ID       | `thaarei-fleet`                                              |
+| Package scope                  | `@thaarei`                                                   |
+| Private repository             | `Thaarei-Technology/fleet`                                   |
+| Mac checkout                   | `/Users/nishanth/projects/fleet`                             |
+| Technical and operations owner | `Nishanth`                                                   |
+| Commercial owner               | `Thaarei Ventures LLP`                                       |
+| Deployment target and topology | `dokploy`, `standard`                                      |
+| Profiles                       | `web,api,data,identity,tenancy,jobs,events,cache,rate-limit` |
+
+The private repository is a planned destination, not evidence it already
+exists. Inspect before creating or connecting it. Preserve Version 1, its
+repository, deployed services, and data. This plan includes no migration,
+retirement, or replacement of Version 1.
+
+Omit storage, notifications, payments, external-api, search, observability,
+mobile, Python, and AI profiles. Outbound ULIP calls do not require Fleet's
+own public REST/OpenAPI profile. Keep Pino and basic operational logging even
+though the observability profile is omitted.
+
+### 3.2 Verified starter findings
 
 The reviewed starter input is the pinned commit
 `e82b6b705012d6f317b07189a048efbe3d5acb0c`. The release metadata at that
@@ -235,14 +281,59 @@ The reviewed findings shape the bootstrap work:
 - The generated identity-mail default uses Resend. Fleet's intended adapter is
   ZeptoMail, with Mailpit for development.
 - The generated outbox handler currently records delivery without performing a
-  provider effect. Implement and test the actual notification dispatch before
-  using it for any alert.
+  provider effect. Replace it with the actual Fleet job/event dispatcher and
+  record completion only after the declared work succeeds. Reminder and alert
+  notification dispatch remains outside this pilot.
+- The generated Valkey adapters require client callbacks. Wire the actual
+  client and atomic counters; selecting a profile does not implement the
+  distributed limiter.
+- Live Dokploy deployment, restore, rollback, and registry attestation were
+  still unqualified in the reviewed release metadata. Record Fleet-specific
+  proof before production admission.
 
 Do not state exact generated package names, scripts, commands, routes, or
 directory paths until the generated source is inspected. Discover them from
 the generated `package.json`, `IMPLEMENTATION.md`, `AGENTS.md`, command
 `--help` output, and source exports. Do not guess from an older starter
 version.
+
+### 3.3 Fleet as the starter trial consumer
+
+P0 and P1 use Fleet as the first real trial of the selected starter profiles
+and their dependency closure. A reproducible defect in the initializer,
+generator, selected profile composition, shared foundation package, shared
+tooling package, generated documentation, or starter validation belongs in
+`app-starter-kit`. Fix that defect in the starter source and add a regression
+test there. Product rules, Fleet screens, Fleet data models, ULIP behavior, and
+the ZeptoMail choice belong in Fleet.
+
+Use this defect loop during P0 and P1:
+
+1. Reproduce the failure from the recorded starter source in an isolated
+   fixture through the starter DevX profile.
+2. Classify the failure as a starter defect, a Fleet defect, or an environment
+   problem. Record the evidence and the affected selected profiles.
+3. For a starter defect, follow the starter repository's `AGENTS.md`. Add the
+   smallest failing regression test, then fix the owning starter module.
+4. Run the owning package checks and the generated-output checks for every
+   affected selected profile. If shared generator behavior changed, run the
+   starter's required broader validation matrix.
+5. Ask the primary agent to inspect the starter diff and validation evidence.
+   Record the exact repaired commit. If a commit is not yet authorized, record
+   the base commit and a complete patch hash and keep the result provisional.
+6. If the repair changes a versioned private package, qualify the new exact
+   package version and its access before Fleet consumes it. Publication and
+   release remain explicit owner actions.
+7. Generate Fleet again in a new scratch destination. Compare the complete
+   output with the failed attempt, then import only the reviewed result.
+
+Keep the starter repair and the Fleet implementation as separate diffs and
+separate evidence. Do not make a permanent repair only in generated Fleet
+code. If the problem is Fleet-specific, change Fleet and leave the starter
+unchanged. Record non-blocking starter improvements in the starter backlog;
+they do not expand P0 or P1. A blocking starter defect keeps the current phase
+open until the repaired source, required package version, and regenerated
+output pass.
 
 ## 4. Architecture, data, UI, and provider contracts
 
@@ -272,17 +363,23 @@ tenant tables.
 
 Separate these record classes:
 
-| Record class | Authority | Customer editing |
-| --- | --- | --- |
-| Organization-owned details | Fleet application | Authorized fields only |
-| Provider observation | ULIP response plus immutable provenance | Read-only; refresh creates a new observation |
-| Current projection | Application projection of accepted observation | Never manually overwrite provider fields |
-| Processing state | Fleet job and lookup lifecycle | Authorized retry or refresh only |
-| Audit event | Append-only application or platform stream | No mutation or deletion through the product |
+| Record class               | Authority                                      | Customer editing                             |
+| -------------------------- | ---------------------------------------------- | -------------------------------------------- |
+| Organization-owned details | Fleet application                              | Authorized fields only                       |
+| Provider observation       | ULIP response plus immutable provenance        | Read-only; refresh creates a new observation |
+| Current projection         | Application projection of accepted observation | Never manually overwrite provider fields     |
+| Processing state           | Fleet job and lookup lifecycle                 | Authorized retry or refresh only             |
+| Audit event                | Append-only application or platform stream     | No mutation or deletion through the product  |
 
 Use UUIDv7 for internal entity identity. Treat registration, licence, and tag
 identifiers as typed, normalized, versioned external evidence. Store provider
 subject binding and response status before accepting a result into a projection.
+
+Encrypt restricted identifiers and restricted provider fields with
+application-side authenticated encryption. Keep the key path outside the
+database and separate production and recovery wrapping paths. Support exact
+matching through a keyed, tenant-scoped lookup value. Do not log raw provider
+bodies, raw restricted identifiers, or provider credentials.
 
 Separate provider observation time from retrieval time. Preserve missing,
 masked, partial, stale, unavailable, malformed, not-found, quota-wait,
@@ -322,14 +419,17 @@ consumed usage from PostgreSQL before resuming.
 
 Use a 15-minute user-refresh cooldown unless the approved dataset terms require
 a longer interval. Do not enable automatic whole-fleet polling in the pilot.
-Fetch challans and recent toll observations on request or on a specifically
-approved bounded schedule. Label `FASTAG/01` as recent activity with source
-coverage limits.
+Fetch challans and recent toll observations on request. Primary lookups run
+on onboarding and authorized refresh. Scheduled whole-fleet refresh and
+continuous toll history are deferred. Label `FASTAG/01` as recent activity
+with source coverage limits, never GPS or complete movement history.
 
 ### 4.5 Import contract
 
 Support UTF-8 CSV and pasted identifier lists. Defer XLSX. An import contains
 identifiers and organization-owned fields, never reconstructed provider facts.
+CSV parsing is bounded and in-memory or staging based. The pilot does not
+accept binary documents and does not require a document-upload scanner.
 
 - Limit each upload to 5 MiB and 1,000 rows.
 - Validate columns, identifiers, and tenant-local duplicates.
@@ -361,9 +461,11 @@ fields only when the dataset policy permits export.
 
 ### 5.1 Rules for this checkout
 
-Keep Git operations on the Mac checkout or worktree. Run installs, builds,
-tests, migrations, Docker commands, and servers through `devx` after the
-application profile exists. Use `devx setup` for preparation and `devx start`
+Keep Git operations on the existing Mac checkout. Create an ordinary topic
+branch from the current base branch for each phase. Run installs, builds, tests,
+migrations, Docker commands, and servers through `devx`. Before the
+Fleet application profile exists, use the external starter bootstrap profile.
+Use `devx setup` for preparation and `devx start`
 explicitly for execution. Do not start an application from `devx setup`.
 
 The current DevX profile is documentation-only. Do not invent application
@@ -379,38 +481,46 @@ profile with real service commands, health checks, and validation commands.
 3. Inspect the pinned starter commit, generator flags, package manifests,
    release metadata, and private-package access. Record the `UNKNOWN` state if
    the access test returns `403`.
-4. Implement the bounded starter prerequisite that adds `--skip-git`. Keep
-   default Git behavior unchanged. Test the flag at the starter source before
-   using it for Fleet.
-5. Prepare a temporary external DevX bootstrap profile for the pinned starter
-   checkout. Keep personal profile files outside the repository.
+4. Prepare and validate an external DevX bootstrap profile for the pinned
+   starter checkout before any install, build, test, or generation. Keep its
+   files outside the repository. The checkout and Git operations stay on the
+   Mac; its remote mirror must not contain Git metadata.
+5. Implement and test the bounded starter prerequisite that adds `--skip-git`
+   through this bootstrap profile. Preserve default behavior and reject its
+   combination with remote-repository creation. Record the resulting source
+   revision and input hashes before generation; do not silently follow `main`.
 6. Generate `thaarei-fleet` into a new, nonexistent scratch destination. Use
    the approved profile list:
 
    ```text
    web,api,data,identity,tenancy,jobs,events,cache,rate-limit
    ```
-
 7. Inspect the complete generated output. Verify product name, package scope,
    owner values, profiles, deployment values, metadata, dependency versions,
    `IMPLEMENTATION.md`, and the generated source contracts.
-8. Transfer only verified source output to the Mac. Exclude dependencies,
+8. If generation or inspection exposes a reusable starter defect, run the
+   section 3.3 defect loop. Generate into a new scratch destination after the
+   repair and repeat step 7.
+9. Transfer only verified source output to the Mac. Exclude dependencies,
    caches, credentials, runtime artifacts, and scratch state. Inspect path
    collisions before importing into `/Users/nishanth/projects/fleet`.
-9. Update the Fleet DevX profile after the generated application manifests and
-   commands are known. Keep `profile.json`, `compose.yml`, `controller.sh`,
-   and profile instructions consistent.
-10. Run `devx profile validate` and `devx profile activate` as required by the
-    instructions file. Run the smallest generated validation first.
-11. Use separate development services for web, API, worker, PostgreSQL,
-    Valkey, and Mailpit. Start only after validation and profile setup.
-12. Prove browser login, tenant isolation, migrations, worker execution, and
+10. Update the Fleet DevX profile after the generated application manifests and
+    commands are known. Keep `profile.json`, `compose.yml`, `controller.sh`,
+    and profile instructions consistent.
+11. Validate and activate the complete Fleet profile. Run `devx setup`, then
+    `devx status --json`; require zero synchronization conflicts, the intended
+    mirror, resource admission, and only loopback forwards.
+12. Run `devx start` explicitly. Use separate development services for web,
+    API, worker, PostgreSQL, Valkey, and Mailpit. Run the smallest generated
+    validation through `devx`, followed by the applicable full product check.
+13. Prove browser login, tenant isolation, migrations, worker execution, and
     a disposable lookup fixture before feature work proceeds.
 
 After bootstrap, inspect the generator's work-record contract. If it creates
 `.thaarei/work/`, use that exact namespace and format. Create one
 `.thaarei/work/FLEET-Pxx.md` per phase. The generated root `IMPLEMENTATION.md`
-derives or indexes work records according to the starter contract. It does not
+derives from work records according to the starter contract. Run the verified
+`implementation:sync` script through `devx`; never hand-edit that dashboard. It does not
 replace this plan, and this plan does not replace the generated work records.
 
 ### 5.3 Starter work-record rule
@@ -427,7 +537,199 @@ contract is known. Add dated entries with the phase, actor, command or source
 reference, result, and next handoff. Do not use this section as a substitute
 for post-bootstrap `.thaarei/work/FLEET-Pxx.md` records.
 
-Current log: **No phase has started.**
+### 2026-09-06 — P0 starter qualification
+
+Actor: primary Codex agent with a bounded starter implementer.
+
+Status on 2026-09-06: **Blocked.** P0 code and selected-profile fixture work
+were implemented, but private package access and the complete starter
+validation gate had not passed. P1 had not started.
+
+Objective and dependencies:
+
+- Qualify the pinned starter input and add the required `--skip-git` behavior
+  without generating Fleet.
+- Use `/Users/nishanth/projects/app-starter-kit` at base revision
+  `e82b6b705012d6f317b07189a048efbe3d5acb0c`, release
+  `1.0.0-dev.1`, Node `24.20.0`, and pnpm `11.22.0`.
+- Use the ordinary `codex/fleet-p0` branch in both the Fleet and starter
+  checkouts. No linked checkout exists or is required.
+- Keep the private package identities at
+  `@thaarei-technology/foundation@1.0.0-dev.1` and
+  `@thaarei-technology/tooling@1.0.0-dev.1`.
+
+Changed paths:
+
+- Starter source and tests:
+  `packages/create-app/src/generator.ts`,
+  `packages/create-app/src/index.ts`,
+  `packages/create-app/src/validation.ts`,
+  `packages/create-app/src/index.test.ts`,
+  `packages/create-app/src/initializer.test.ts`, and
+  `packages/tooling/src/pack-check.ts`.
+- External bootstrap profile:
+  `/Users/nishanth/.codex/devx/profiles/fleet-starter-bootstrap/`.
+  DevX instance `8da5518ada56` mirrors the authoritative starter at
+  `/home/mnishanth02/codex-runtimes/fleet-starter-bootstrap/8da5518ada56/src`.
+- Personal Git and DevX instructions now require ordinary topic branches in
+  existing checkouts. The temporary changes in
+  `/Users/nishanth/thaarei/technology/thaarei-starter` were removed, and that
+  checkout is clean on its original `main` revision `49235c1`.
+- This file contains the pre-bootstrap record. No guessed
+  `.thaarei/work/FLEET-P0.md` file was created.
+
+Starter source input:
+
+- Base revision:
+  `e82b6b705012d6f317b07189a048efbe3d5acb0c`.
+- Uncommitted patch SHA-256:
+  `1d66cb956217da670d3cc08b977b734e9f9f7df7a4c7f467e577ce96566c21ba`.
+- The patch adds the boolean `--skip-git` option, rejects remote-repository
+  combinations, preserves default `git init --initial-branch=main`, and keeps
+  clean package-consumer checks outside any parent pnpm workspace.
+
+Commands and results:
+
+- `devx profile validate fleet-starter-bootstrap`: passed.
+- `devx setup`, `devx status --json`, and `devx start`: passed for instance
+  `8da5518ada56`. Synchronization had zero conflicts, both forwards were bound
+  to loopback, health was green, and the resource gate passed.
+- `devx test environment`: passed with Node `v24.20.0`, pnpm `11.22.0`, Git
+  `2.39.5`, and Python `3.11.2`.
+- `devx test install`: passed with the frozen starter lockfile.
+- `devx test help`: passed and displayed `--skip-git`.
+- `devx test package-access`: failed before package installation because the
+  instance-specific remote secret does not contain `NODE_AUTH_TOKEN`. Package
+  availability remains unverified. No secret value was read or recorded.
+- `devx test test-skip-git`: passed, 57 tests. The test ran the complete
+  initializer and generated validation, proved that `--skip-git` leaves no
+  `.git`, proved default initialization writes `refs/heads/main`, and covered
+  incompatible remote options.
+- `devx test recipe`: passed as a dry run. The nonexistent destination remained
+  absent, validation errors and warnings were empty, and both requested and
+  resolved profiles were exactly
+  `web,api,data,identity,tenancy,jobs,events,cache,rate-limit`.
+- `devx test qualify-selected-profiles`: passed. The disposable fixture wrote
+  123 files, passed generated validation, matched `dokploy` and `standard`, and
+  contained no Git metadata.
+- `devx test pack-check`: passed. All three publishable tarballs installed in
+  an isolated clean consumer.
+- The first `devx test validate-starter` attempt stopped at an unused `tmpdir`
+  import in `index.test.ts`. The import was removed. A targeted
+  `devx exec -- corepack pnpm exec biome lint ...` diagnostic then failed
+  because `corepack` is not installed in the remote host shell. The profile's
+  container-backed validation command remained the authoritative check.
+- The final `devx test validate-starter` attempt partially passed. Release, publication,
+  source-of-truth, boundary, implementation, format, lint, typecheck, 125
+  tests, pack validation, and the `web-only`, `internal-tool`,
+  `web-developer-handoff`, `web-mobile-product`, and
+  `durable-agentic-workflow` fixtures passed. The
+  `all-server-capabilities` fixture then failed at `pnpm db:up` because the
+  hardened bootstrap container has no Docker client or daemon access. The
+  container was not granted control of the shared host Docker socket.
+- `git diff --check`: passed in the starter and Fleet checkouts. Both source
+  documents remained unchanged.
+
+Acceptance evidence and unresolved issues:
+
+- The skip-Git behavior and Fleet-selected profile fixture satisfy their local
+  acceptance checks. The exact private package installation does not.
+- The complete starter fixture matrix remains unqualified in this DevX runtime.
+  Use a separately approved Docker-capable validation route. Do not expose the
+  shared host Docker socket to the hardened bootstrap container by default.
+- All supplier, customer, ULIP, production, recovery, privacy, email, and pilot
+  gates in section 7 remain open. They do not block synthetic development, but
+  they still block their named live actions.
+
+Exact handoff:
+
+1. Provision `NODE_AUTH_TOKEN` through the instance-specific remote DevX secret
+   path, outside chat and the repository. Rerun `devx test package-access`.
+2. Approve a bounded Docker-capable starter validation environment and rerun
+   `devx test validate-starter`, or record an explicit phase decision that the
+   passed selected-profile qualification is the required P0 boundary.
+3. Recompute the complete starter patch hash after any repair and inspect the
+   final diff. Mark P0 complete only when both remaining checks are accepted.
+4. Start P1 only after that P0 acceptance. P1 must generate into a new scratch
+   destination from the recorded starter revision and patch.
+
+### 2026-09-07 — P0 acceptance
+
+Actor: primary Codex agent.
+
+Status: **Complete.** This handoff authorizes P1, but P1 has not started.
+
+Accepted source and dependencies:
+
+- Authoritative starter:
+  `/Users/nishanth/projects/app-starter-kit`, branch `codex/fleet-p0`, clean at
+  revision `d34272063cc3bd8fb86ac2be6e68e3418b744989` and tag
+  `starter-v1.0.0-dev.1`.
+- The accepted source contains separate commits for `--skip-git`, isolated
+  pack-check pnpm resolution, and pack-check argument parsing:
+  `87b9bda`, `60ba9d5`, and `d342720`.
+- Private package access resolved exactly
+  `@thaarei-technology/foundation@1.0.0-dev.1` and
+  `@thaarei-technology/tooling@1.0.0-dev.1`. No token value was read or
+  recorded.
+- The former starter checkout at
+  `/Users/nishanth/thaarei/technology/thaarei-starter` remains clean on its
+  original `main` revision `49235c1`. No linked checkout or Git worktree was
+  created.
+- Before bootstrap, this section remains the work record. No guessed
+  `.thaarei/work/FLEET-P0.md` was created.
+
+Commands and results:
+
+- `devx profile validate fleet-starter-bootstrap`: passed.
+- `devx test package-access`: passed for both exact private package versions.
+- `devx test environment`, `devx test install`, and `devx test help`: passed;
+  help displayed `--skip-git`.
+- `devx test test-skip-git`: passed, 57 tests. The generated fixture passed
+  its complete validation without `.git`; default generation still initialized
+  `main`.
+- `devx test recipe`: passed as a dry run. The destination remained absent,
+  warnings were empty, deployment was `dokploy` with variant `standard`, and
+  requested and resolved profiles were exactly
+  `web,api,data,identity,tenancy,jobs,events,cache,rate-limit`.
+- `devx test qualify-selected-profiles`: passed. The disposable fixture wrote
+  123 files and passed generated validation without Git metadata.
+- `devx test pack-check`: passed for all three isolated package consumers.
+- `devx test validate-starter` passed release, publication, source-of-truth,
+  boundary, implementation, format, lint, typecheck, 11 test files with 129
+  tests, package tarball validation, and five fixture profiles. It then stopped
+  at the unselected `all-server-capabilities` fixture because the hardened
+  bootstrap container has no Docker client or daemon access.
+- The final starter and Fleet `git diff --check` checks passed. The two source
+  documents remained unchanged.
+- `devx stop` completed for instance `8da5518ada56`; the final admission status
+  reported zero active development runtimes and no active port forwards.
+
+Acceptance decision and remaining limits:
+
+- P0 qualification is bounded to Fleet's exact selected profile set. Every
+  selected-profile generation and validation check passed, so the unavailable
+  Docker-dependent, unselected all-server fixture is recorded as a
+  non-blocking broader-check limitation for P0. This decision does not qualify
+  that fixture or relax its Docker requirement.
+- The reusable starter repairs are committed and covered by passing regression
+  tests in the starter. Fleet must regenerate from the accepted clean revision,
+  not from an uncommitted patch.
+- All supplier, customer, ULIP, deployment, production, recovery, privacy,
+  email, and pilot evidence gates in section 7 remain open. P0 completion does
+  not imply live or pilot readiness.
+
+Exact handoff to P1:
+
+1. Use starter revision `d34272063cc3bd8fb86ac2be6e68e3418b744989`, tag
+   `starter-v1.0.0-dev.1`, and the exact nine-profile recipe recorded above.
+2. Generate once into a new, nonexistent scratch destination on the current
+   `codex/fleet-p0` branch without creating a Git worktree.
+3. Verify emitted product identity, namespace, profile resolution, deployment
+   values, private package locks, validation commands, and the actual generated
+   work-record format before moving the output into Fleet.
+4. Preserve all open live gates and do not treat generation, installation,
+   build, login, health, or fixture success as pilot readiness.
 
 ## 7. Evidence gates and open dependencies
 
@@ -436,24 +738,24 @@ implemented against fixtures and still be pending live qualification. Mark a
 gate `Complete` only when the named evidence exists and the relevant reviewer
 accepts it.
 
-| Gate | Owner | Status | Blocks |
-| --- | --- | --- | --- |
-| Pinned starter generation and private package install | Nishanth | Open | Bootstrap completion |
-| Starter `--skip-git` prerequisite | Starter implementation owner | Open | Fleet generation |
-| DevX Fleet profile and generated command inventory | Nishanth | Open | Local and remote validation |
-| VAHAN/04 written approval, fields, quota, purpose, and live result | Nishanth with ULIP team | Open | Live vehicle lookup |
-| SARATHI/02 written approval, driver purpose, minimization, and live result | Nishanth with ULIP team | Open | Live driver lookup |
-| FASTAG/02 written approval and live result | Nishanth with ULIP team | Open | Live tag lookup |
-| ECHALLAN/01 contract and live result | Nishanth with ULIP team | Open | Live challan view |
-| FASTAG/01 recent-activity terms and live result | Nishanth with ULIP team | Open | Live toll view |
-| India production host and recovery destination | Operations owner | Open | Production data admission |
-| Backup freshness and clean-host restore rehearsal | Operations owner | Open | Pilot go-live |
-| Pilot agreement, processing terms, and asset allowance | Product owner | Open | Customer data admission |
-| Driver notice and minimum privacy request process | Product owner with legal reviewer | Open | Non-user driver data |
-| Retention, deletion, and restore reconciliation | Product and technical owners | Open | Production data admission |
-| ZeptoMail account, terms, and production delivery test | Operations owner | Open | Transactional email |
-| Security review, secret inventory, and production admission | Technical owner | Open | Production release |
-| Customer rehearsal and acceptance evidence | Product owner and design partner | Open | February pilot |
+| Gate                                                                       | Owner                             | Status | Blocks                      |
+| -------------------------------------------------------------------------- | --------------------------------- | ------ | --------------------------- |
+| Pinned starter generation and private package install                      | Nishanth                          | Open   | Bootstrap completion        |
+| Starter`--skip-git` prerequisite                                         | Starter implementation owner      | Open   | Fleet generation            |
+| DevX Fleet profile and generated command inventory                         | Nishanth                          | Open   | Local and remote validation |
+| VAHAN/04 written approval, fields, quota, purpose, and live result         | Nishanth with ULIP team           | Open   | Live vehicle lookup         |
+| SARATHI/02 written approval, driver purpose, minimization, and live result | Nishanth with ULIP team           | Open   | Live driver lookup          |
+| FASTAG/02 written approval and live result                                 | Nishanth with ULIP team           | Open   | Live tag lookup             |
+| ECHALLAN/01 contract and live result                                       | Nishanth with ULIP team           | Open   | Live challan view           |
+| FASTAG/01 recent-activity terms and live result                            | Nishanth with ULIP team           | Open   | Live toll view              |
+| India production host and recovery destination                             | Operations owner                  | Open   | Production data admission   |
+| Backup freshness and clean-host restore rehearsal                          | Operations owner                  | Open   | Pilot go-live               |
+| Pilot agreement, processing terms, and asset allowance                     | Product owner                     | Open   | Customer data admission     |
+| Driver notice and minimum privacy request process                          | Product owner with legal reviewer | Open   | Non-user driver data        |
+| Retention, deletion, and restore reconciliation                            | Product and technical owners      | Open   | Production data admission   |
+| ZeptoMail account, terms, and production delivery test                     | Operations owner                  | Open   | Transactional email         |
+| Security review, secret inventory, and production admission                | Technical owner                   | Open   | Production release          |
+| Customer rehearsal and acceptance evidence                                 | Product owner and design partner  | Open   | February pilot              |
 
 Minimum privacy work is deliberately small for this pilot: identify the
 controller and processor roles, state the driver-data purpose, publish an
@@ -506,8 +808,9 @@ migration checksum, release metadata, and image digest. Deploy the tested
 digest. Use expand-only migrations and rehearse application rollback without
 resetting customer data.
 
-Keep secrets outside the repository and outside local synchronization. Inject
-isolated DevX, staging, and production values through Dokploy. Keep recovery
+Keep secrets outside the repository and outside local synchronization. DevX
+reads its dedicated Platform-side secret files; Dokploy injects separately
+scoped staging and production values. Keep recovery
 credentials under separate custody. Never expose ULIP credentials to tenants.
 
 Restricted fields use authenticated application-owned encryption where the
@@ -530,468 +833,466 @@ and test restoration on a clean recovery host.
   support window.
 - Reapply deletion records during restore so erased data does not return.
 
-Record backup freshness, recovery credentials, clean-host restore time,
+Record backup freshness, non-secret recovery credential custody references,
+clean-host restore time,
 configuration recovery, key recovery, deletion reconciliation, and customer
-communication in the release evidence.
+communication in the release evidence. Backups and their freshness monitoring
+run continuously, including outside support hours. Only the staffed recovery
+clock is limited to the support window; elapsed downtime can exceed four hours.
 
 ## 9. Delivery phases and handoffs
 
-The ten two-week windows below match the approved schedule. Each phase maps to
-one window. A phase can finish early, but the next phase still needs its own
-explicit chat request and review. All phases start as **Not started**.
+Follow P0 through P9 in order. Dates are planning windows at 24–36 owner
+hours per week, not guarantees of external approvals. Reserve about one
+quarter of weekly time for review, integration, validation, and rework.
+Record schedule changes without dropping acceptance criteria.
 
-### P0 — Authority, scope, and bootstrap prerequisite
+Each phase requires the prior phase's accepted software handoff. A dataset
+marked "Implemented, pending live" may supply fixture-tested contracts to the
+next engineering phase. That state never permits live customer processing.
+P9 requires all five selected datasets and all applicable live gates.
+
+### P0 — Scope, starter qualification, and bootstrap prerequisite
 
 Window: September, weeks 1–2, 2026.
 
-Objective: make the pilot boundary executable and qualify the pinned starter
-input without generating Fleet yet.
+Objective: resolve the bootstrap prerequisites and record an executable recipe.
 
-Dependencies: this plan, `docs/PRD.md`, `docs/Product and Technical Plan.md`,
-`/Users/nishanth/.codex/devx/profiles/instructions.md`, and access to the
-pinned starter checkout.
+Dependencies and references: sections 0–3 and 5 of this file, the personal
+DevX instructions, the starter's root AGENTS.md, initializer, generator,
+capability registry, package manifests, and release metadata. Consult the
+original technical plan §24 only to identify superseded assumptions.
 
-Targeted source references: PRD sections 1, 2, 3, 4, 5, 7, 10, 11, and 12;
-technical-plan sections 1, 2, 8, 9, 21, 24, 25, and 26; starter
-`starter-release.json`, `AGENTS.md`, `packages/create-app/src/index.ts`, and
-`packages/create-app/src/generator.ts` at the pinned commit.
+Allowed write scope: bounded repairs and tests in the starter modules that own
+failures in the selected Fleet profiles, the external starter bootstrap
+profile, and section 6 of this file. Fleet application generation belongs to
+P1. Package publication, pushes, ULIP submission, and production changes are
+separate owner actions.
 
-Allowed write scope: starter source files required for the bounded
-`--skip-git` prerequisite, this plan's section 6 execution log, and phase
-evidence outside the Fleet application. Do not edit Fleet application files,
-DevX application profiles, or the two source documents.
+Work:
 
-Bounded work:
+- Inspect the existing Fleet and starter Git state on the Mac.
+- Verify the recorded source revision and current package identities.
+- Configure, validate, and activate the external starter bootstrap profile
+  before running any workload; keep the Fleet docs-preview profile unchanged.
+- Verify permitted installation of the exact private foundation and tooling
+  packages through DevX. Record package access denied as unverified, not absent.
+- If the inspected starter still lacks it, implement the bounded skip-Git
+  option from section 5.2 and its tests. Preserve default behavior.
+- Treat qualification as a real trial of the selected profiles. Apply the
+  section 3.3 defect loop to each reproducible blocking starter defect.
+- Record the reviewed revision or base revision plus complete patch hash,
+  exact identity values, flags, profiles, and scratch-generation recipe.
+- Inventory the open supplier and customer gates without treating them as
+  prerequisites for synthetic development.
 
-- Confirm the current Git status and preserve user changes.
-- Verify the starter commit, runtime versions, profiles, generator flags, and
-  private package install access.
-- Record `UNKNOWN` when a package check returns `403`; do not call it absent or
-  unpublished.
-- Add and test `--skip-git` with default behavior preserved.
-- Prepare a reproducible bootstrap recipe that does not guess generated
-  scripts or paths.
+Acceptance:
 
-Observable acceptance and tests:
+- Private package installation succeeds with the intended remote credentials.
+- Tests prove skip-Git generation still validates output, leaves no Git
+  metadata, preserves default behavior, and rejects incompatible options.
+- Tests use isolated scratch fixtures. They do not initialize Fleet.
+- Every repaired starter defect has a failing-before and passing-after test in
+  its owning repository. Affected selected-profile output also passes.
+- Fleet resolves every changed private package to the exact qualified version.
+- The recipe uses all section 3.1 identity values and a nonexistent destination.
+- The primary agent has inspected the prerequisite diff and test evidence.
 
-- The recipe names the exact starter commit and selected profiles.
-- The starter help output exposes the new option.
-- Generation with the option leaves no Git repository in the destination and
-  still runs the generator's validation path.
-- Default generation behavior remains covered by the starter's existing tests.
-- Section 6 contains command results and the package-access status.
+Handoff: section 6 records exact source inputs, bootstrap profile, permitted
+commands, package evidence, and the reviewed recipe. If package access or
+required prerequisite validation fails, P0 is blocked; P1 does not generate.
 
-Handoff: provide the pinned source evidence, prerequisite diff, test output,
-and the exact scratch-generation command shape. P1 may begin only after the
-primary agent reviews the prerequisite and package status.
-
-### P1 — Generated foundation and Fleet DevX profile
+### P1 — Generate Fleet and establish the application runtime
 
 Window: September, weeks 3–4, 2026.
 
-Objective: generate Fleet from the pinned starter, import the verified output,
-and establish the actual DevX runtime contract.
+Objective: import a verified generated product and prove its foundation.
 
-Dependencies: P0 complete, package access resolved or explicitly blocked with
-an evidence record, starter prerequisite reviewed, and the instructions file.
+Dependencies and references: accepted P0; sections 3–5; generated AGENTS.md,
+package manifests, developer guide, migration and work-record conventions.
+Original technical-plan §9, §10, and §13 supply applicable tenancy rules.
 
-Targeted source references: starter generator and generated output;
-technical-plan sections 9, 10, 11, 13, 21, 24, and 25; DevX instructions.
+Allowed write scope: generated Fleet source and supporting tests, its external
+DevX profile, the verified P01 work record, and bounded starter repairs and
+regression tests triggered by Fleet generation or foundation validation.
+Preserve both source documents. Keep starter and Fleet changes separate.
+GitHub repository creation, commits, pushes, releases, and package publication
+require the phase request to include them.
 
-Allowed write scope: generated Fleet source, generated manifests, Fleet DevX
-profile files required by the instructions, and `.thaarei/work/FLEET-P01.md`
-after the generated work-record format is inspected. Keep docs/PRD.md and the
-technical plan unchanged.
+Work:
 
-Bounded work:
+- Execute the P0 recipe through the starter bootstrap profile.
+- Verify emitted identity, profile closure, dependency locks, and metadata.
+- If generation or a selected foundation module fails because of reusable
+  starter behavior, run the section 3.3 defect loop. Regenerate from the exact
+  repaired source before importing output or continuing Fleet work.
+- Import only verified source into the Mac checkout after collision review.
+- Inspect actual service commands and configure Fleet's external DevX profile.
+- Run setup, inspect status and synchronization, start explicitly, and validate.
+- Wire tenant transactions, runtime database roles, and actual Valkey counters.
+- Replace the placeholder outbox dispatcher with typed dispatch to implemented
+  handlers. Unknown event types fail visibly rather than becoming delivered.
+- Integrate identity email through the product-owned ZeptoMail adapter seam;
+  exercise Mailpit only in development. Validate session and assurance behavior.
+- Establish product CI and immutable-image build foundations using synthetic
+  fixtures. Keep production application secrets out of CI and image layers.
 
-- Generate into a new scratch destination with the selected profiles.
-- Verify product identity, package scope, owners, deployment values, and
-  generated metadata across emitted files.
-- Import verified output after collision inspection.
-- Inspect generated scripts, commands, health checks, and `IMPLEMENTATION.md`.
-- Update the documentation-only DevX profile with real service definitions.
-- Implement tenant RLS context, actual Valkey counters, identity email adapter
-  seam, and a real outbox dispatch seam only to the extent needed for the
-  foundation acceptance.
-- Use Mailpit in development and keep ZeptoMail configuration environment-only.
+Acceptance:
 
-Observable acceptance and tests:
+- Generation and product checks pass using the recorded source and versions.
+- No known blocking defect in a selected starter profile remains patched only
+  in Fleet. Each starter repair has starter-side regression evidence and a
+  regenerated-output comparison.
+- Browser login, verification, recovery, revocation, and organization switching
+  work with two synthetic organizations.
+- Forced RLS and role checks prevent cross-tenant seed-data access.
+- Migrations are repeatable; a real worker job executes and records its outcome.
+- Valkey failure denies dependent operations without resetting durable usage.
+- The Fleet profile lists actual services, health checks, labels, resource
+  limits, loopback forwards, and zero synchronization conflicts.
 
-- Generated output is reproducible from the pinned input and contains no
-  credentials or runtime artifacts.
-- `devx profile validate` and `devx profile activate` pass when required.
-- The smallest actual generated validation command passes.
-- Browser login and recovery work in development.
-- Two disposable tenants cannot read each other's seed data.
-- Migrations run, a worker executes a disposable job, and Valkey loss fails
-  safely without resetting usage state.
+Handoff: P01 records source import evidence, actual scripts and paths, the
+application profile, browser results, and foundation tests. Synchronize the
+generated execution dashboard from the work record.
 
-Handoff: create `.thaarei/work/FLEET-P01.md` in the generator's format with
-changed paths, commands, results, and known gaps. P2 receives the actual
-generated package and command inventory.
-
-### P2 — Fleet, vehicle, driver, and import core
+### P2 — Fleet, location, and vehicle registry
 
 Window: October, weeks 1–2, 2026.
 
-Objective: deliver tenant-safe organization, fleet, location, vehicle, driver,
-administrative-link, and CSV onboarding behavior.
+Objective: deliver vehicle management as a complete database-to-browser slice.
 
-Dependencies: P1 foundation, generated source contract, database and worker
-validation, and approved pilot identifiers and fields.
+Dependencies and references: P1; section 4; PRD §3–4 and technical-plan §5
+and §9, narrowed by section 2. Synthetic identifier contracts are sufficient.
 
-Targeted source references: `docs/PRD.md` sections 3, 4, and 7; technical-plan
-sections 5, 9, 10, 11, and 12; generated repositories, schema, transport, and
-UI modules.
+Allowed write scope: vehicle/fleet/location core rules, repositories,
+migrations, private transport, screens, tests, and the P02 work record.
 
-Allowed write scope: generated application packages for domain, database,
-transport, UI, jobs, validation, and tests; `.thaarei/work/FLEET-P02.md`.
+Work:
 
-Bounded work:
+- Implement organization-owned fleets, locations, and vehicle records.
+- Support nationwide state references and the selected descriptive categories.
+- Separate pending lookup identity from organization-owned fields and future
+  provider projections. Do not add manual government-fact editing.
+- Enforce the 500 managed-asset allowance at activation, not draft creation.
+- Implement typed identifiers, tenant-local duplicate checks, listing, filters,
+  detail views, field updates, offboarding, and permitted history.
+- Apply Owner, Manager, and Viewer checks and transactional audit events.
 
-- Add organization-owned fleet, location, vehicle, and driver records.
-- Add nationwide state and operating-state values with South and North Indian
-  fixtures, without claiming state-specific compliance support.
-- Add vehicle categories and trailer relationships as descriptive records.
-- Add effective-dated primary and relief driver links with overlap rules.
-- Add CSV templates, preview, bounded commit, idempotency, and result counts.
-- Add Owner, Manager, and Viewer authorization at API and UI boundaries.
-- Add audit events for material record and membership changes.
+Acceptance:
 
-Observable acceptance and tests:
+- Two tenants cannot read, mutate, or infer each other's vehicle records.
+- Duplicate activation and concurrent capacity checks cannot exceed allowance.
+- Failed writes do not produce false saved state or orphan audit events.
+- Browser tests cover create, search, update, activate, and offboard.
+- Sensitive-field masking and server authorization hold for direct API requests.
 
-- Two tenants cannot read, mutate, export, or infer each other's records.
-- Viewer cannot mutate records or view unmasked restricted fields.
-- Duplicate identifiers and overlapping primary links are rejected.
-- Import preview has no side effect; commit is bounded and retry-safe.
-- Repeated imports do not create duplicate logical records.
-- Offboarding closes active links and keeps permitted history.
-- Browser tests cover create, search, update, import, link, and offboard flows.
+Handoff: P02 provides the accepted vehicle schema, migration order, transport
+contract, browser evidence, and constraints required by driver links and import.
 
-Handoff: attach schema, API, UI, and test evidence to P02. Record unresolved
-field decisions as explicit follow-up items. P3 may consume only the accepted
-domain contract.
-
-### P3 — ULIP gateway, policy, provenance, and failure states
+### P3 — Drivers, administrative links, and bulk onboarding
 
 Window: October, weeks 3–4, 2026.
 
-Objective: implement the provider boundary and deterministic asynchronous
-workflow before connecting live ULIP credentials.
+Objective: complete driver management and reliable identifier-based onboarding.
 
-Dependencies: P2 domain identifiers, worker and outbox behavior, and the
-written or fixture form of the five dataset contracts.
+Dependencies and references: P2; section 4.3–4.5; PRD §4 and §7;
+technical-plan §5.3 and §12 only as modified by this pilot.
+Fixture fields permit implementation; written terms gate real-data use.
 
-Targeted source references: technical-plan section 8, section 9.3–9.7,
-section 10.3–10.4, section 15.3, section 20.3, and section 24; PRD
-verification requirements `PRD-VER-001` through `PRD-VER-007`.
+Allowed write scope: driver/link/import domain, persistence, transport, UI,
+migrations, bounded parsing, tests, and the P03 work record.
 
-Allowed write scope: provider port, adapters, lookup tables, usage ledger,
-jobs, retry and cooldown logic, provenance views, fixture or emulator, and
-`.thaarei/work/FLEET-P03.md`.
+Work:
 
-Bounded work:
+- Implement organization-local driver profiles and minimal contact/engagement
+  fields, kept separate from future SARATHI facts.
+- Add effective-dated primary and relief links and their history.
+- Allow a driver to administer multiple vehicles without implying actual duty.
+- Close links during offboarding. Reject duplicate overlaps and simultaneous
+  primary links for the same vehicle with database-backed concurrency controls.
+- Implement pasted lists and vehicle/driver CSV templates, immutable previews,
+  bounded commits, idempotency, capacity checks, and explicit result counts.
+- Store provider intentions transactionally for future processing. Preview
+  never invokes ULIP. Unqualified integration paths remain explicitly pending.
 
-- Model dataset policy, permitted purpose, allowed fields, entitlement, and
-  provider-subject binding.
-- Implement operation IDs, correlation IDs, idempotency, bounded retry, and
-  durable usage accounting.
-- Implement envelope and business-result validation without raw payload leaks.
-- Implement partial, masked, unavailable, quota-wait, wrong-subject, and
-  schema-mismatch states.
-- Pause new provider calls when coordination is unavailable and recover usage
-  from PostgreSQL.
-- Provide deterministic fixture responses for each of the five datasets.
+Acceptance:
 
-Observable acceptance and tests:
+- Cross-tenant driver/link references and unauthorized field changes fail.
+- Driver offboarding and primary-driver replacement preserve history.
+- CSV limits, malformed input, unknown columns, duplicate rows, concurrent
+  commits, and interrupted/repeated batches have deterministic outcomes.
+- A 500-asset plus 1,000-driver synthetic import stays within declared limits
+  and does not silently discard rejected or pending records.
+- Browser flows cover preview, correction, commit, linking, and offboarding.
 
-- Provider calls are asynchronous and return an operation ID.
-- Wrong-subject data never populates a requested entity.
-- A failed refresh retains the last successful observation.
-- Retries and worker crashes do not silently multiply provider effects.
-- Valkey loss pauses admission and restart does not reset quota.
-- Every result shows source and observation or retrieval timestamps.
-- Fixture tests cover all five datasets and every required degraded state.
+Handoff: P03 records import schemas, relationship constraints, exact population
+counts, tests, and the lookup-intent contract consumed by P4.
 
-Handoff: provide the provider contract, fixture matrix, usage evidence, and
-open ULIP terms. P4 can implement dataset-specific adapters without changing
-the core provider contract.
-
-### P4 — Dataset adapters and verification screens
+### P4 — ULIP gateway, quotas, provenance, and emulators
 
 Window: November, weeks 1–2, 2026.
 
-Objective: implement the five dataset adapters and complete vehicle and driver
-verification journeys against fixtures, then qualify live access when written
-approval exists.
+Objective: implement common provider execution independently of live access.
 
-Dependencies: P3 provider gateway and P2 records. Live qualification also
-depends on the matching ULIP approval and egress allowlisting.
+Dependencies and references: P3; section 4.4; original technical-plan §8
+and §9.3–9.7, subject to the on-demand pilot scope.
 
-Targeted source references: technical-plan section 8.1–8.8, section 11.6,
-section 16, section 17.3, and section 20; PRD `PRD-VER-001` through
-`PRD-VER-005`.
+Allowed write scope: provider ports, dataset policy, observations/projections,
+lookup and usage repositories, workers, Valkey wiring, fixtures, tests,
+lookup-state UI, and the P04 work record.
 
-Allowed write scope: five adapter modules, field mappings, verification UI,
-lookup queue UI, source disclosure, fixtures, live qualification evidence, and
-`.thaarei/work/FLEET-P04.md`.
+Work:
 
-Bounded work:
+- Implement typed requests carrying tenant, subject, dataset, purpose,
+  permitted fields, operation identity, and correlation.
+- Persist intent, audit, and downstream work atomically.
+- Add tenant-scoped in-flight deduplication, token single-flight, quota
+  reservation, cooldowns, bounded retry, and circuit behavior.
+- Validate provider envelope, business result, and independent subject binding.
+- Persist permitted observations with mapping version and source timestamps.
+- Model partial, masked, missing, wrong-subject, incompatible, denied, quota,
+  and transient results without losing the last successful observation.
+- Create synthetic fixtures for all five datasets; mark provisional mappings
+  as unqualified until checked against the approved account contracts.
+- Fail closed on lost coordination; rebuild usage from the durable ledger.
 
-- Implement `VAHAN/04`, `SARATHI/02`, `FASTAG/02`, `ECHALLAN/01`, and
-  `FASTAG/01` behind P3 ports.
-- Keep raw values, normalized values, source metadata, and mapping version
-  according to the approved policy.
-- Display provider facts as read-only and label missing or masked values.
-- Use `FASTAG/01` only for bounded recent activity.
-- Use `ECHALLAN/01` only for read-only details.
-- Run live tests only with approved credentials and approved purposes.
+Acceptance:
 
-Observable acceptance and tests:
+- Concurrent duplicate requests have one logical outcome and accounted attempts.
+- Crash, timeout, retry, lease expiry, and restart tests expose ambiguous
+  external outcomes rather than claiming exactly-once provider delivery.
+- Unknown, mismatched, or malformed data cannot populate accepted projections.
+- No raw body, restricted identifier, or token appears in logs or errors.
+- All five fixture contracts and failure scenarios pass.
 
-- Each adapter passes fixture envelope, subject binding, mapping, and failure
-  tests.
-- No automatic fallback endpoint is called.
-- Live response evidence records dataset, timestamp, contract version, and
-  result state without storing credentials.
-- Vehicle and driver onboarding show asynchronous progress and truthful failure.
-- A successful live call is not recorded as proof of legal compliance.
+Handoff: P04 provides ports, state model, fixture matrix, usage and retry
+evidence, and open contract questions. Downstream adapter work can proceed
+with fixtures while live approvals remain open.
 
-Handoff: report each dataset as `fixture-complete`, `live-qualified`, or
-`pending approval`. P5 may build bounded read-only challan and toll views only
-for the states supported by this evidence.
-
-### P5 — Read-only activity views, dashboard, exports, and pilot controls
+### P5 — Vehicle, licence, and FASTag adapters
 
 Window: November, weeks 3–4, 2026.
 
-Objective: make the registry useful for day-to-day pilot operations while
-preserving the narrow scope.
+Objective: complete VAHAN/04, SARATHI/02, and FASTAG/02 journeys.
 
-Dependencies: P2 domain, P3 gateway, and P4 adapter states.
+Dependencies and references: P4; section 1.3; approved account-specific
+contracts when available and technical-plan §8.1–8.8.
 
-Targeted source references: PRD sections 8, 10, and 11; technical-plan sections
-11, 16, 18, 20.7, and 27; generated UI and reporting modules.
+Allowed write scope: the three primary adapters and mappings, detail screens,
+lookup progress/history, tests, qualification records, and the P05 work record.
 
-Allowed write scope: dashboard, list and detail views, read-only activity views,
-bounded exports, audit presentation, allowance checks, and
-`.thaarei/work/FLEET-P05.md`.
+Work:
 
-Bounded work:
+- Implement each primary adapter against the P4 ports.
+- Bind and normalize only permitted fields with explicit partial/masked states.
+- Populate vehicle and driver projections asynchronously and read-only.
+- Add onboarding lookup, authorized refresh, and source/freshness presentation.
+- Qualify live calls only in an explicitly authorized production boundary
+  after the dataset, purpose, privacy, and egress gates pass.
 
-- Add current counts for vehicles, drivers, categories, pending lookups, and
-  provider result states.
-- Add read-only challan and recent toll observation sections.
-- Add search and filters using PostgreSQL projections.
-- Add authorized bounded CSV exports with formula-injection protection.
-- Add pilot allowance and cohort counters without billing automation.
-- Add clear unsupported-coverage, stale, and unavailable labels.
+Acceptance:
 
-Observable acceptance and tests:
+- Each adapter passes positive, partial, not-found, denied, wrong-subject,
+  malformed, and retry fixture cases.
+- The UI distinguishes source observation time, retrieval time, and validity.
+- No fallback endpoint is called; missing fields are not manually fabricated.
+- Each dataset has a separate fixture-complete and live-qualified record.
 
-- Dashboard counts are tenant-scoped and reproducible from database queries.
-- Exports require authorization, contain only permitted fields, and do not
-  create public or persistent download links.
-- Toll views never show a live position or reconstructed route.
-- Allowance exhaustion blocks new activation server-side.
-- Browser tests cover dashboard, filters, detail views, and exports.
+Handoff: P05 records normalized mappings, browser evidence, and dataset gate
+status. Accepted fixture implementation permits P6; open live gates block
+customer lookup, not further software implementation.
 
-Handoff: provide screenshots or browser evidence, query evidence, export
-fixtures, and the known limitation list. P6 may prepare production deployment
-only after the control and security review accepts the pilot surface.
-
-### P6 — Production topology, backups, security, and recovery
+### P6 — Read-only eChallan and recent toll observations
 
 Window: December, weeks 1–2, 2026.
 
-Objective: qualify the minimal Dokploy deployment and prove data recovery
-before customer rehearsal.
+Objective: add the two selected secondary dataset journeys.
 
-Dependencies: P1–P5 release candidate, measured resource profile, an India
-production VM, an independent India recovery destination, and test secrets.
+Dependencies and references: P4 and P5 software handoffs; section 1.3 and
+4.4; account-specific ECHALLAN/01 and FASTAG/01 contracts.
 
-Targeted source references: PRD sections 10, 11, and 12; technical-plan
-sections 17–22; DevX instructions for remote setup and validation.
+Allowed write scope: these two adapters and mappings, vehicle-detail views,
+bounded observation persistence, fixtures, tests, and the P06 work record.
 
-Allowed write scope: deployment configuration, container and service manifests,
-backup and restore scripts, secrets wiring, security tests, telemetry needed for
-the pilot, and `.thaarei/work/FLEET-P06.md`. Keep production credentials out
-of the repository and work record.
+Work:
 
-Bounded work:
+- Implement read-only challan results and recent toll observations.
+- Deduplicate repeated observations without suggesting continuous collection.
+- Display the source's time/window and incomplete or absent responses.
+- Enforce purpose, subject-category, retention, and export restrictions.
+- Keep both lookups user-requested; add no payment, dispute, route, GPS,
+  inferred-location, or scheduled whole-fleet collection workflow.
 
-- Deploy separate web, API, worker, PostgreSQL, and Valkey services through
-  Dokploy with private stateful ports.
-- Measure coexistence, resource reserves, disk, WAL, logs, and backup growth.
-- Configure India recovery copies and monitored freshness.
-- Perform a clean-host restore and deletion reconciliation.
-- Exercise application rollback and expand-only migration compatibility.
-- Verify secret injection, public TLS, tenant RLS, masking, and audit coverage.
+Acceptance:
 
-Observable acceptance and tests:
+- Views depend on dataset entitlement and qualification, not a claim that
+  state-specific compliance rules have been approved.
+- Fixtures prove duplicate, empty, stale, partial, denied, and wrong-subject
+  behavior. Empty results do not prove absence of liability or a FASTag.
+- Browser views cannot be mistaken for live position or complete toll history.
+- Each adapter's live evidence remains separate from fixture evidence.
 
-- The deployed image digest matches the tested release evidence.
-- Production admission rejects mock or sandbox provider classes.
-- Backups restore committed records within the four covered-hour target.
-- Restored data does not reintroduce erased records.
-- Resource and cost measurements fit the budget or produce an explicit capacity
-  decision before the next phase.
-- Critical security findings are closed or recorded as a pilot blocker.
+Handoff: P06 supplies all five adapters' qualification states, read-only view
+evidence, and the retained/exportable-field policies required by P7.
 
-Handoff: provide deployment digest, configuration inventory, cost ledger,
-backup freshness, restore timing, deletion evidence, and security findings.
-P7 can harden the release candidate only after recovery evidence is reviewable.
-
-### P7 — Release hardening and recovery rehearsal
+### P7 — Dashboard, exports, privacy operations, and deployment rehearsal
 
 Window: December, weeks 3–4, 2026.
 
-Objective: close critical defects and make the release candidate repeatable for
-customer rehearsal.
+Objective: produce a feature-complete candidate and a tested deployment path.
 
-Dependencies: P6 topology and recovery evidence, all accepted P1–P5 flows,
-and the open-gate list.
+Dependencies and references: P1–P6 software handoffs; sections 7–8; original
+technical-plan §16–22 only for applicable pilot controls. Real-data gates
+may remain open while the rehearsal uses isolated synthetic data.
 
-Targeted source references: PRD release acceptance and NFR sections;
-technical-plan sections 17, 18, 20, 21, 22, 25, and 30.
+Allowed write scope: dashboard/report queries and UI, bounded CSV exports,
+privacy operations, deployment definitions, backup/restore tooling, runbooks,
+tests, Fleet DevX profile updates required by implemented services, and P07.
+This phase authorizes only an isolated synthetic rehearsal deployment within
+the existing host's approved headroom. It does not activate customers or
+promote the customer-serving production release. New paid resources and
+changes to unrelated host services require owner direction.
 
-Allowed write scope: fixes required by evidence, migration corrections,
-accessibility and performance changes, runbooks, release manifests, and
-`.thaarei/work/FLEET-P07.md`.
+Work:
 
-Bounded work:
+- Complete registry counts, search/filter views, audit presentation, and
+  authenticated CSV exports with allowed fields and formula-safe values.
+- Implement minimal access/correction/deletion handling and restore-safe
+  deletion records. Finish the pilot agreement/notice preparation in parallel.
+- Rehearse web, API, worker, dedicated PostgreSQL, and Valkey deployment.
+- Exercise the same immutable image promotion and migration path intended
+  for production, using synthetic records and separate secrets.
+- Prepare independent India recovery copies and perform a clean-host restore.
+- Record application/data separation, host coexistence, costs, and rollback.
+- Protect stateful services from application redeployment.
 
-- Run tenant isolation, authorization, masking, revocation, idempotency, and
-  provider-failure suites.
-- Test 500 assets and 1,000 drivers with twice-retained test history where the
-  host can support it.
-- Run browser checks for all pilot journeys at the agreed device profile.
-- Rehearse worker crash, retry, Valkey loss, provider outage, and restore.
-- Fix only findings that affect the pilot boundary or mandatory controls.
-- Write the operator runbook and customer limitation list.
+Acceptance:
 
-Observable acceptance and tests:
+- Counts reconcile to tenant-scoped database queries, including pending rows.
+- Exports enforce authorization and dataset rights at execution time.
+- Rehearsal images match recorded digests and migration checksums.
+- Synthetic data restores with separately recoverable keys and deletion replay.
+- Resource/cost evidence supports the proposed production boundary or identifies
+  the exact capacity decision needed before real-data admission.
 
-- No critical tenant, data-integrity, security, or recovery finding remains
-  open without an owner and explicit pilot block.
-- Performance and resource evidence is recorded at representative volume.
-- Accessibility checks pass for the core journeys.
-- Recovery and rollback evidence is repeatable by the named operator.
-- Release manifest and migration checksums are immutable and reviewable.
+Handoff: P07 provides the candidate, deployment/rollback and recovery runbooks,
+cost ledger, privacy operations, and unresolved live gates. An absent paid
+recovery destination blocks its qualification, not unrelated feature checks.
 
-Handoff: hand over the release candidate, runbook, evidence index, known
-limitations, and remaining live gates. P8 uses this candidate for customer
-rehearsal.
-
-### P8 — Customer rehearsal and pilot cohort
+### P8 — Security, performance, accessibility, and recovery validation
 
 Window: January, weeks 1–2, 2027.
 
-Objective: rehearse onboarding with synthetic or approved data and validate the
-first 10–25 vehicle cohort without silently expanding scope.
+Objective: resolve release-critical defects and prove representative operation.
 
-Dependencies: P7 release candidate, design partner, approved field mapping,
-minimum privacy package, and any live ULIP gates required for the rehearsal.
+Dependencies and references: P7 candidate; section 8; relevant PRD NFRs and
+technical-plan §25 test scenarios narrowed to this pilot.
 
-Targeted source references: PRD onboarding and acceptance sections; technical
-plan sections 4, 8, 12, 17.3, 20, 22, 27, and 28; pilot agreement and driver
-notice when available.
+Allowed write scope: evidence-driven fixes and tests, release/runbook updates,
+and P08. Keep customer activation and production promotion in P9.
 
-Allowed write scope: customer-seeded synthetic or approved pilot records,
-onboarding fixtures, runbook corrections, support contact documentation, and
-`.thaarei/work/FLEET-P08.md`. Do not change production provider policy or
-increase cohort size without owner review.
+Work:
 
-Bounded work:
+- Run tenant/RLS, role, masking, authentication assurance, revocation, audit,
+  encryption, and export tests.
+- Exercise all browser journeys with keyboard, narrow viewport, and supported
+  browsers. Record the tested device/network profile.
+- Test 500 assets and 1,000 drivers plus twice that retained fixture volume;
+  measure API, database, worker, memory, connection, and disk behavior.
+- Exercise provider outage, token failure, quotas, worker crash, Valkey loss,
+  retry/recovery backlog, and missed work.
+- Rehearse image rollback, clean-host recovery, backup freshness, key recovery,
+  and deletion reconciliation; verify the covered recovery clock.
+- Complete the independent pilot security review and remediation evidence.
 
-- Rehearse organization access, import, lookup progress, driver links, search,
-  exports, offboarding, and recovery communication.
-- Include South and North Indian registration and operating-state fixtures.
-- Record live-provider pending states separately from software defects.
-- Confirm owner, manager, and viewer permissions with customer participants.
-- Validate support-hours and recovery-clock disclosure.
+Acceptance:
 
-Observable acceptance and tests:
+- No unresolved critical tenant, integrity, security, or recovery defect
+  qualifies for pilot release. Record blockers rather than waiving them.
+- Required representative-volume checks pass. If host limits prevent the
+  checks, capacity qualification stays open; volume tests are not optional.
+- Core browser journeys meet applicable accessibility and performance targets.
+- Runbooks are executable by the named operator and identify a recovery backup
+  contact before customer go-live.
 
-- The cohort can complete the core vehicle and driver journeys.
-- Customer acceptance records isolation, data visibility, import outcomes,
-  provider states, exports, and known limitations.
-- No unsupported compliance claim appears for hazardous, passenger, or lorry
-  categories.
-- Pilot agreement, driver notice, retention, deletion, and request routing are
-  approved or the external pilot remains blocked.
+Handoff: P08 supplies the exact candidate, complete validation index, measured
+limits, remaining external gates, and the customer-rehearsal checklist.
 
-Handoff: provide signed or recorded customer acceptance, cohort counts,
-pending provider results, support contacts, and final blocker list. P9 may
-perform the final go-live review.
+### P9 — Customer rehearsal, go-live, and February pilot
 
-### P9 — Final go-live review and February pilot
+Window: January, weeks 3–4, 2027. Target activation: February 1, 2027.
 
-Window: January, weeks 3–4, 2027. Target pilot: February 1, 2027.
+Objective: obtain acceptance, qualify the live boundary, launch the free pilot,
+and hand over measured operations.
 
-Objective: decide whether the evidence supports external pilot activation and
-onboard the approved cohort.
+Dependencies and references: P8 candidate; all five dataset live gates;
+customer/privacy/retention/host/recovery gates in section 7; applicable
+technical-plan §28 acceptance outcomes. Before the first real lookup, confirm
+that the selected phase request authorizes live qualification and customer
+activation. A request limited to readiness review does not authorize launch.
 
-Dependencies: P8 acceptance, all mandatory evidence gates, approved live ULIP
-contracts and connectivity, recovery rehearsal, cost evidence, and named
-operations ownership.
+Allowed write scope: rehearsal fixtures, authorized production definitions,
+live qualification evidence, release metadata, approved 10–25-vehicle cohort,
+runbook fixes, and P09. Purchasing, package publication, unrelated deployment
+changes, and customer messages need their own existing authorization.
 
-Targeted source references: PRD release acceptance and production environment
-requirements; technical-plan sections 20–22, 25, 26, 28, 29, and 30; all
-accepted phase work records.
+Work:
 
-Allowed write scope: final release metadata, production rollout record,
-customer cohort activation, go-live runbook entries, and
-`.thaarei/work/FLEET-P09.md`. Production deployment, provider publication,
-and customer activation require explicit authorization in the P9 chat.
+- Rehearse customer login, permissions, identifier import, lookup progress,
+  administrative links, search, exports, offboarding, and support.
+- Include representative selected vehicle categories and South/North Indian
+  states in fixtures; use real records only within approved source rights.
+- Verify the exact image digest, migrations, production configuration,
+  provider contracts/allowlist, backup freshness, and recovery evidence.
+- Require all five datasets to be live-qualified for the agreed complete
+  pilot. Any reduced-dataset pilot requires an explicit scope amendment;
+  agents must not silently remove a selected capability to meet the date.
+- Reject enabled mock/sandbox provider classes in production. An intentionally
+  disabled integration stays visibly unavailable and never returns fake facts.
+- Record customer acceptance, free-pilot terms, support window, and limitations.
+- Activate only the agreed representative cohort, then reconcile every result.
+- Run ten business days of hypercare, recording health, queue, quota, resource,
+  email, access, and support outcomes.
+- Propose measured waves toward 500 assets. Execute each expansion only under
+  the owner's approved cohort/wave authorization.
 
-Bounded work:
+Acceptance:
 
-- Recheck the exact release digest, migration set, secrets, backup freshness,
-  restore evidence, and provider allowlist.
-- Confirm every live dataset is `live-qualified` or remove its live surface
-  from the pilot release.
-- Confirm the cost ledger and host capacity remain within the accepted plan.
-- Activate only the approved 10–25 vehicle cohort.
-- Monitor lookup backlog, provider failure, resource use, email delivery,
-  tenant access, and customer requests during hypercare.
-- Record the decision, evidence, limitations, and next cohort criteria.
+- Exact activated, pending, partial, failed, not-found, and excluded counts
+  reconcile without hidden rows or duplicate logical records.
+- All live, privacy, security, host, budget, and recovery gates have evidence.
+- The customer completes the intended vehicle/driver journeys and understands
+  the source, coverage, support, and recovery limitations.
+- Ten business days of hypercare and the ongoing operator handoff are recorded.
+- February 1 remains a target. Missing approval keeps launch pending while
+  internal fixture-based acceptance can continue.
 
-Observable acceptance and tests:
-
-- The release checklist has an owner and evidence for every mandatory gate.
-- Customer data is admitted only after the privacy, retention, recovery, and
-  ULIP conditions are satisfied.
-- The first cohort completes the agreed vehicle and driver journeys.
-- Hypercare records daily health, queue, quota, resource, and support results
-  for ten business days.
-- Expansion toward 500 assets remains conditional on measured capacity, quota,
-  support, and recovery evidence.
-
-Handoff: deliver the final work record, release evidence index, customer
-acceptance, known limitations, hypercare schedule, and next-wave decision. A
-future chat must authorize any post-pilot capability or cohort expansion.
+Handoff: final release evidence, customer acceptance, cohort reconciliation,
+hypercare results, known limitations, and the next authorized wave or backlog.
+The broader compliance/document product requires a separate future scope.
 
 ## 10. Phase status table
 
-Update this table only after the phase work record and primary review exist.
-“Complete” means the phase acceptance and handoff passed. “Implemented,
-pending live” means code or fixture behavior exists but an external approval,
-live response, or production gate is still open.
+Update status only with an execution record and primary review. Before
+bootstrap, section 6 is the record. After bootstrap, use the verified phase
+work-record format and regenerate the execution dashboard.
 
-| Phase | Window | Status at plan creation | Exit state to record |
-| --- | --- | --- | --- |
-| P0 Authority, scope, bootstrap prerequisite | Sep weeks 1–2, 2026 | Not started | Complete or blocked with evidence |
-| P1 Generated foundation and DevX | Sep weeks 3–4, 2026 | Not started | Complete |
-| P2 Fleet, vehicle, driver, import core | Oct weeks 1–2, 2026 | Not started | Complete |
-| P3 ULIP gateway and failure states | Oct weeks 3–4, 2026 | Not started | Complete |
-| P4 Dataset adapters and verification screens | Nov weeks 1–2, 2026 | Not started | Complete or implemented pending live |
-| P5 Dashboard, activity views, exports | Nov weeks 3–4, 2026 | Not started | Complete |
-| P6 Deployment, security, backups, recovery | Dec weeks 1–2, 2026 | Not started | Complete or pilot blocked |
-| P7 Release hardening and rehearsal | Dec weeks 3–4, 2026 | Not started | Complete |
-| P8 Customer rehearsal and cohort | Jan weeks 1–2, 2027 | Not started | Complete or pilot blocked |
-| P9 Final review and February pilot | Jan weeks 3–4, 2027 | Not started | Complete only with live gates |
+"Complete" means the phase's acceptance and handoff passed. "Implemented,
+pending live" permits dependent engineering work, not customer processing.
+Do not mark P9 complete at first deployment if its hypercare remains unfinished.
+
+| Phase                                                | Window                       | Current status | Next phase                 |
+| ---------------------------------------------------- | ---------------------------- | -------------- | -------------------------- |
+| P0 Scope and starter prerequisites                   | Sep weeks 1–2, 2026         | Complete (accepted 2026-09-07) | P1 (authorized, not started) |
+| P1 Bootstrap and Fleet DevX foundation               | Sep weeks 3–4, 2026         | Not started    | P2                         |
+| P2 Fleet, location, vehicle registry                 | Oct weeks 1–2, 2026         | Not started    | P3                         |
+| P3 Drivers, links, CSV onboarding                    | Oct weeks 3–4, 2026         | Not started    | P4                         |
+| P4 ULIP gateway and emulators                        | Nov weeks 1–2, 2026         | Not started    | P5                         |
+| P5 VAHAN, SARATHI, FASTag details                    | Nov weeks 3–4, 2026         | Not started    | P6                         |
+| P6 eChallan and recent toll observations             | Dec weeks 1–2, 2026         | Not started    | P7                         |
+| P7 Dashboard, exports, deployment/recovery rehearsal | Dec weeks 3–4, 2026         | Not started    | P8                         |
+| P8 Security, performance, recovery validation        | Jan weeks 1–2, 2027         | Not started    | P9                         |
+| P9 Customer rehearsal, February pilot, hypercare     | Jan weeks 3–4 and Feb, 2027 | Not started    | Approved waves/future plan |
 
 ## 11. Agent execution and review rules
 
@@ -1034,7 +1335,7 @@ separate agent chat:
 You are implementing Thaarei Fleet phase Pxx from
 docs/IMPLEMENTATION_PLAN.md.
 
-Read, in order:
+Read applicable repository and parent AGENTS.md instructions first, then:
 1. docs/IMPLEMENTATION_PLAN.md, especially section 0, section 2, and phase Pxx.
 2. /Users/nishanth/.codex/devx/profiles/instructions.md.
 3. The targeted sections of docs/PRD.md and docs/Product and Technical Plan.md
@@ -1049,6 +1350,13 @@ Work only within phase Pxx's allowed write scope. Preserve the two source docs,
 unrelated user changes, secrets, and production data. If the phase requires a
 starter, DevX, ULIP, deployment, publication, or production action, perform it
 only when phase Pxx explicitly authorizes it and record the evidence.
+
+For P0 or P1, treat Fleet as the trial consumer of its selected starter
+profiles. If a failure is reusable starter behavior, follow section 3.3. Keep
+the starter repair and Fleet changes separate, test the repair in the starter,
+regenerate Fleet from the recorded repaired source, and then continue the
+current phase. Record a non-blocking starter improvement without expanding the
+phase.
 
 Implement the bounded work. Run the smallest relevant validation first, then
 the phase's broader checks. Inspect the actual diff and runtime evidence.

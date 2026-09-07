@@ -1,0 +1,3 @@
+# Dokploy runbook
+
+The adapter exposes idempotent plan/apply/inspect/promote/rollback/evidence command surfaces and uses administrator-controlled API access. The recorded server version is a candidate until its contract and disposable live suite qualify it; apply and promote fail closed before then. Configure each application as a Docker provider with protected registry access, then supply RELEASE_<SERVICE>_IMAGE without a digest plus RELEASE_<SERVICE>_DIGEST. Keep stateful dependencies in separate projects, deploy applications by immutable digest, map rollback IDs to the release manifest, and treat encrypted external restore exercises—not successful backup jobs—as recovery evidence.

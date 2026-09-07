@@ -1,0 +1,55 @@
+name: Deep product validation
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 2 * * 1"
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deep-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with:
+          version: 11.22.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Prepare private registry authentication
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          umask 077
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" > "$RUNNER_TEMP/thaarei-npmrc"
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/thaarei-npmrc
+      - run: pnpm security:policy-test
+      - run: pnpm validate:deep
+      - run: pnpm recovery:verify
+      - run: cp .env.example .env
+      - run: pnpm dev:deps
+      - run: pnpm db:migrate
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:deep:web
+      - if: always()
+        run: pnpm dev:down
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: deep-validation-evidence
+          path: .artifacts
+          if-no-files-found: error
+          retention-days: 30

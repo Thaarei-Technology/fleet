@@ -1,0 +1,244 @@
+{
+  "$schema": "./tooling/release/release-manifest.schema.json",
+  "schemaVersion": 2,
+  "release": "0.1.0-dev.1",
+  "status": "prerelease",
+  "releasedAt": null,
+  "runtime": {
+    "node": "24.20.0",
+    "pnpm": "11.22.0"
+  },
+  "approvedMajors": {
+    "@axe-core/playwright": 4,
+    "@base-ui/react": 1,
+    "@better-auth/passkey": 1,
+    "@biomejs/biome": 2,
+    "@playwright/test": 1,
+    "@tailwindcss/postcss": 4,
+    "@tanstack/react-form": 1,
+    "@tanstack/react-query": 5,
+    "@thaarei-technology/foundation": 1,
+    "@thaarei-technology/tooling": 1,
+    "@trpc/client": 11,
+    "@trpc/server": 11,
+    "@types/node": 24,
+    "@types/react": 19,
+    "@types/react-dom": 19,
+    "@valkey/valkey-glide": 2,
+    "@vitest/coverage-v8": 4,
+    "better-auth": 1,
+    "drizzle-orm": 0,
+    "fastify": 5,
+    "graphile-worker": 0,
+    "next": 16,
+    "pino": 10,
+    "postgres": 3,
+    "react": 19,
+    "react-dom": 19,
+    "tailwindcss": 4,
+    "tsx": 4,
+    "turbo": 2,
+    "typescript": 6,
+    "vitest": 4,
+    "zod": 4
+  },
+  "testedPackages": {
+    "@axe-core/playwright": "4.13.0",
+    "@base-ui/react": "1.7.0",
+    "@better-auth/passkey": "1.7.1",
+    "@biomejs/biome": "2.5.9",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@tanstack/react-form": "1.33.5",
+    "@tanstack/react-query": "5.101.4",
+    "@thaarei-technology/foundation": "1.0.0-dev.1",
+    "@thaarei-technology/tooling": "1.0.0-dev.1",
+    "@trpc/client": "11.18.0",
+    "@trpc/server": "11.18.0",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@valkey/valkey-glide": "2.5.2",
+    "@vitest/coverage-v8": "4.1.11",
+    "better-auth": "1.7.1",
+    "drizzle-orm": "0.45.2",
+    "fastify": "5.12.1",
+    "graphile-worker": "0.17.3",
+    "next": "16.3.1",
+    "pino": "10.3.1",
+    "postgres": "3.4.9",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.12",
+    "turbo": "2.10.10",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11",
+    "zod": "4.4.3"
+  },
+  "containerImages": {
+    "node": {
+      "reference": "node:24.20.0-bookworm-slim",
+      "digest": "sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e"
+    },
+    "gitleaks": {
+      "reference": "ghcr.io/gitleaks/gitleaks:v8.30.1",
+      "digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f"
+    },
+    "semgrep": {
+      "reference": "semgrep/semgrep:1.176.0",
+      "digest": "sha256:12672acdb0949e19f9f6a4c2b288edd0b404f268f0ca7738a2c06f372f50362e"
+    },
+    "trivy": {
+      "reference": "aquasec/trivy:0.74.0",
+      "digest": "sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
+    },
+    "zap": {
+      "reference": "ghcr.io/zaproxy/zaproxy:2.17.0",
+      "digest": "sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef"
+    },
+    "k6": {
+      "reference": "grafana/k6:2.2.0",
+      "digest": "sha256:9bd01d6941fca969cb61bb57d2da5ee9b385fe2aa8881df3798c196564d6ace6"
+    },
+    "playwright": {
+      "reference": "mcr.microsoft.com/playwright:v1.63.0-noble",
+      "digest": "sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27"
+    },
+    "postgresql": {
+      "reference": "postgres:18.3-bookworm",
+      "digest": "sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba"
+    },
+    "valkey": {
+      "reference": "valkey/valkey:8.1.1",
+      "digest": "sha256:a19bebed6a91bd5e6e2106fef015f9602a3392deeb7c9ed47548378dcee3dfc2"
+    }
+  },
+  "enabledProfiles": [
+    "web",
+    "api",
+    "data",
+    "identity",
+    "tenancy",
+    "jobs",
+    "events",
+    "cache",
+    "rate-limit"
+  ],
+  "compatibilityEvidence": [
+    {
+      "gate": "generated-fixture-validation",
+      "status": "pending",
+      "evidence": "Run pnpm check and record the result in INIT-001."
+    },
+    {
+      "gate": "coverage-thresholds",
+      "status": "pending",
+      "evidence": "Run pnpm test:coverage and retain .artifacts/coverage."
+    },
+    {
+      "gate": "security-scanners",
+      "status": "pending",
+      "evidence": "Run the pinned Gitleaks, Semgrep, and Trivy gates and retain .artifacts/security."
+    },
+    {
+      "gate": "browser-accessibility-dast-performance",
+      "status": "pending",
+      "evidence": "Run pnpm test:deep:web only against a disposable target."
+    },
+    {
+      "gate": "postgresql-backup-restore",
+      "status": "pending",
+      "evidence": "Run pnpm recovery:verify and retain .artifacts/recovery/postgresql.json."
+    },
+    {
+      "gate": "immutable-runtime-images",
+      "status": "pending",
+      "evidence": "Scan, attest, verify, and inspect every exact application image digest."
+    },
+    {
+      "gate": "web-developer-handoff",
+      "status": "passed",
+      "evidence": "The starter's dedicated web, API, data, and identity fixture passed typed proxy, authentication, persistence, migration, build, and container checks under Node 24.20.0."
+    },
+    {
+      "gate": "deployment-and-recovery",
+      "status": "blocked_external",
+      "evidence": "Requires a disposable selected deployment environment and restore/rollback proof."
+    }
+  ],
+  "qualifications": [
+    {
+      "id": "web",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "api",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "data",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "identity",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "tenancy",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "jobs",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "events",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "cache",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "rate-limit",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["generation", "typecheck", "test"]
+    },
+    {
+      "id": "dokploy-standard",
+      "sourceMaturity": "stable",
+      "productionPolicy": "starter_qualified",
+      "qualification": "unqualified",
+      "requiredGates": ["deploy", "migration", "rollback", "restore", "monitoring"]
+    }
+  ],
+  "evidence": [],
+  "securityWaivers": []
+}
