@@ -67,7 +67,7 @@ const roles = [
   ],
 ] as const;
 for (const [role, attributes, password] of roles) {
-  const exists = await sql.unsafe("SELECT 1 FROM pg_roles WHERE rolname = $1", [role]);
+  const exists = await sql.unsafe("SELECT 1 FROM pg_roles WHERE rolname = $1::text", [role]);
   if (exists.length === 0) await sql.unsafe(`CREATE ROLE ${quote(role)} ${attributes}`);
   if (password) {
     const rows = await sql.unsafe(
