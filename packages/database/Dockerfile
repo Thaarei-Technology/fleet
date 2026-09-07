@@ -3,8 +3,8 @@ FROM node:24.20.0-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd
 WORKDIR /workspace
 COPY . .
 RUN corepack enable
-RUN --mount=type=secret,id=npmrc,target=/run/secrets/npmrc,required=true \
-    NPM_CONFIG_USERCONFIG=/run/secrets/npmrc pnpm install --frozen-lockfile --ignore-scripts --filter @thaarei/database...
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc,required=true \
+    pnpm install --frozen-lockfile --ignore-scripts --filter @thaarei/database...
 RUN pnpm --filter @thaarei/database... build
 RUN pnpm --filter @thaarei/database --prod deploy /runtime
 COPY packages/database/migrations /runtime/migrations
