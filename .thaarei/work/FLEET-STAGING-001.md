@@ -89,7 +89,16 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 
 ## Evidence
 
-Pending. Never record secret values or full connection strings.
+- Isolated Dokploy project `Thaarei Fleet` and `staging` environment created;
+  managed PostgreSQL and Valkey resources plus six application shells are
+  provisioned without changing existing Fleet Compliance resources.
+- `staging-fleet.thaarei.com` resolves DNS-only to `151.185.47.72`.
+- Fleet main workflow built and pushed all four immutable images and produced
+  registry attestations and SBOM artifacts, but the Trivy HIGH/CRITICAL gate
+  remains failing; no digest is accepted for deployment yet.
+- Starter generator regression fix adds role bootstrap before the all-server
+  fixture migration run; local typecheck and initializer tests pass.
+- Never record secret values or full connection strings.
 
 ## Decisions
 
@@ -100,10 +109,14 @@ Pending. Never record secret values or full connection strings.
 
 ## Blockers
 
-- Protected CI must execute the repaired four-artifact workflow on the merged
-  commit and publish its digest, SBOM, and attestation evidence.
-- Live Dokploy API credentials and the DNS-only `staging-fleet.thaarei.com`
-  record are still required before remote qualification can begin.
+- The GHCR package token was exposed in a remote process listing during a
+  diagnostic scan. The GitHub repository secrets were removed immediately;
+  the token must be revoked and replaced before any further CI or Dokploy
+  activity. Do not reuse the exposed credential.
+- After replacement, protected CI must pass the Trivy HIGH/CRITICAL gate and
+  publish accepted four-artifact digests, SBOMs, and attestations.
+- Dokploy API access must be restored with the replacement operator credential
+  before remote qualification can continue.
 - Browser automation is not currently attached; interactive user-facing proof
   remains open until the ChatGPT browser is available.
 
