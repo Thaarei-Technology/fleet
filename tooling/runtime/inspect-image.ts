@@ -67,7 +67,13 @@ const waitForHealthy = async (): Promise<ContainerState> => {
 docker(["pull", image]);
 const inspected = JSON.parse(docker(["image", "inspect", image])) as Array<{
   Id?: string;
-  Config?: { User?: string; Healthcheck?: unknown; Labels?: Record<string, string> };
+  Config?: {
+    User?: string;
+    Healthcheck?: unknown;
+    Labels?: Record<string, string>;
+    Entrypoint?: string[] | null;
+    Env?: string[];
+  };
 }>;
 const configuration = inspected[0]?.Config;
 if (!configuration) throw new Error("Docker did not return image configuration");
@@ -82,20 +88,19 @@ for (const label of [
   if (!configuration.Labels?.[label])
     throw new Error(`Runtime image is missing OCI label ${label}`);
 }
+const nodeExecutable = configuration.Env?.some(
+  (entry) => entry.startsWith("PATH=") && entry.includes("/nodejs/bin"),
+)
+  ? "/nodejs/bin/node"
+  : "/usr/local/bin/node";
 const files = docker([
   "run",
   "--rm",
   "--entrypoint",
-  "find",
+  nodeExecutable,
   image,
-  "/app",
-  "-path",
-  "/app/node_modules",
-  "-prune",
-  "-o",
-  "-type",
-  "f",
-  "-print",
+  "-e",
+  `const fs=require("node:fs");const path=require("node:path");const walk=(dir)=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(full==="/app/node_modules"){continue;}if(entry.isDirectory()){walk(full);}else if(entry.isFile()){console.log(full);}}};walk("/app");`,
 ]);
 const forbidden = files
   .split("\n")
