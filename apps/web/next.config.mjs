@@ -18,13 +18,9 @@ const config = {
   async headers() {
     return [{ source: "/(.*)", headers }];
   },
-  async rewrites() {
-    const api = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:3001";
-    return [
-      { source: "/api/auth/:path*", destination: `${api}/api/auth/:path*` },
-      { source: "/trpc/:path*", destination: `${api}/trpc/:path*` },
-    ];
-  },
+  // API/auth and tRPC are forwarded by App Router route handlers. Keeping the
+  // target out of build-time rewrites lets Dokploy inject API_INTERNAL_URL at
+  // runtime instead of baking a localhost fallback into the image.
 };
 
 export default config;
