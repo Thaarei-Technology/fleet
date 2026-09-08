@@ -46,13 +46,13 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 - [ ] Starter release-pipeline and deployment defects have regression tests and
   reviewed regenerated Fleet output.
 - [x] Four immutable artifacts are scanned, attested, and recorded by digest.
-- [ ] Dokploy 0.30.5 passes the disposable adapter contract suite.
+- [x] Dokploy 0.30.5 passes the disposable adapter contract suite.
 - [x] New project is isolated; only web is public at the selected hostname.
-- [ ] DNS, direct-origin TLS, Cloudflare proxy, and public-port checks pass.
+- [x] DNS, direct-origin TLS, Cloudflare proxy, and public-port checks pass.
 - [x] Database roles, repeatable migrations, worker dispatch, identity flows,
   tenant isolation, and Valkey fail-closed behavior pass.
-- [ ] Candidate A/B deployment, rollback to A, and forward deployment pass.
-- [ ] Synthetic R2 backup and separate-database restore pass.
+- [x] Candidate A/B deployment, rollback to A, and forward deployment pass.
+- [x] Synthetic R2 backup and separate-database restore pass.
 - [ ] Resource, coexistence, and on-demand stop evidence is recorded.
 
 ## Plan
@@ -71,6 +71,12 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 
 ## Validation
 
+- Closeout plan: complete a Dokploy UI restore into a pre-created disposable
+  database, validate the restored schema and migrations, remove the disposable
+  database, enable Docker-backed starter qualification through the trusted
+  bootstrap DevX profile, rerun the full starter matrix, and recheck both the
+  DevX and public browser paths.
+
 - `devx status --json`: Fleet DevX runtime healthy with web, API, worker,
   PostgreSQL, Valkey, Mailpit, and tooling; no sync conflicts.
 - `devx test foundation-tests`: passed role, RLS, and cross-tenant proof.
@@ -86,13 +92,33 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 - Starter `devx test validate-starter`: generated fixtures passed until the
   all-server recovery case, which is blocked because Docker is unavailable
   inside the DevX container.
+- `pnpm implementation:sync`, `pnpm check:source-of-truth`,
+  `pnpm check:boundaries`, `pnpm check:implementation`, and
+  `pnpm release:check`: passed locally (Node 26.4.0 emits the repository's
+  existing Node 24.20.x engine warning).
+- Final DevX `pnpm check`: passed formatting, lint without errors, release and
+  project checks, source-of-truth, boundaries, implementation synchronization,
+  migration integrity, 11 package typechecks, 11 package builds, the Next.js
+  production build, and 27 tests. Biome reported existing advisory-level style
+  notices only.
+- Fleet `devx test install`: passed the frozen-lockfile installation across all
+  12 workspace projects with pnpm 11.22.0; the prior private-registry HTTP 401
+  no longer reproduces.
+- Proxied HTTPS checks: `/`, `/trpc/health`, and
+  `/api/auth/get-session` returned 200; HTTP returned 301 to HTTPS; Cloudflare
+  headers and direct-origin certificate validation passed.
+- Dokploy registry refresh and candidate A/B deployment, rollback, and
+  reapply checks passed with the recorded immutable image IDs and rollback
+  identifiers above.
 
 ## Evidence
 
 - Isolated Dokploy project `Thaarei Fleet` and `staging` environment created;
   managed PostgreSQL and Valkey resources plus six application shells are
   provisioned without changing existing Fleet Compliance resources.
-- `staging-fleet.thaarei.com` resolves DNS-only to `151.185.47.72`.
+- `staging-fleet.thaarei.com` was initially verified DNS-only against
+  `151.185.47.72`; the final check below records the subsequent Cloudflare
+  proxy switch and direct-origin validation.
 - Fleet main workflow run `34150171179` passed all four build jobs, exact-image
   Trivy scans, runtime hardening checks, registry attestations, and SBOM
   generation for source commit `a3564282442b5c1143fedb09f2bdfa3ba7f5df7f`.
@@ -154,7 +180,10 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 - DNS `staging-fleet.thaarei.com` resolves to `151.185.47.72`. Dokploy now
   serves a Let’s Encrypt certificate directly on that origin (CN/SAN matches
   the hostname, issuer Let’s Encrypt, validity observed through 2026-12-06),
-  and HTTP redirects to HTTPS. The Cloudflare-proxied leg remains open.
+  and HTTP redirects to HTTPS. The record is now Cloudflare-proxied: DNS
+  returns Cloudflare anycast addresses, HTTPS responses include `server:
+  cloudflare`, `cf-ray`, and dynamic cache status, and the proxied health
+  response matches the direct-origin health contract.
 - All six Fleet services have zero published Docker ports; only the web
   application has the Dokploy domain. API, worker, Mailpit, PostgreSQL, and
   Valkey remain private on the Dokploy network.
@@ -196,6 +225,70 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
   Fleet-only object
   `fleet-staging-postgres-ctuuws/fleet-staging-qualification-001/2026-09-07T19-37-31-932Z.sql.gz`
   (16,156 bytes). Disposable restore evidence is still open.
+- The refreshed VM-side GHCR credential is present with protected file mode
+  `0600`; Dokploy’s current registry test succeeds, Docker login and manifest
+  inspection succeed, and the credential was injected into the private Fleet
+  application definitions without recording its value.
+- Registry-backed immutable rollback now passes after refreshing the Dokploy
+  application credentials. Candidate A is web digest
+  `sha256:96072fb60fb1976903345e95c54728a072b3b2f918c8d19bf0af6378344c9ffb`
+  (deployment `6WdyEY2k708ZPS-6V44Za`, rollback `XyvutoHZPrU-brlYTHcM7`);
+  candidate B is web digest
+  `sha256:becd4ba442c27ca85a75d338619f5552eff32b027f6dc21c0b59cbb770f1b1e0`
+  (deployment `2DP0K0H9TQi1jzh70nkbs`, rollback `C0ZOqWAOrtXimgByQ4Uxa`).
+  Dokploy rollback to candidate A returned HTTP 200 and the running image ID
+  matched candidate A; candidate B was then reapplied and its image ID and
+  source revision matched the requested digest.
+- In-app browser validation on 2026-09-08 confirmed the Dokploy staging
+  environment lists the six long-lived Fleet services as healthy, with the
+  migration job idle and no service errors. Only `fleet-staging-web` has the
+  `staging-fleet.thaarei.com` domain; API, worker, Mailpit, migration, Valkey,
+  and PostgreSQL show no public domain or external port.
+- The public staging page loaded over HTTPS. Its typed health action returned
+  `status: ok`, and its unauthenticated viewer action returned the expected
+  `401 UNAUTHORIZED` boundary. Opening the HTTP URL landed on the HTTPS URL.
+- Cloudflare DNS records show `staging-fleet.thaarei.com` as an A record for
+  `151.185.47.72` with proxy status `Proxied`. Cloudflare SSL/TLS reports
+  encryption mode `Full` and an active managed wildcard edge certificate.
+- Dokploy deployment history and logs visibly show successful candidate A,
+  candidate B, and candidate B reapply deployments. The candidate B log shows
+  GHCR `Login Succeeded`, `Registry Login Success`, and the full active web
+  digest `sha256:becd4ba442c27ca85a75d338619f5552eff32b027f6dc21c0b59cbb770f1b1e0`.
+- The initial in-app-browser pass confirmed that Cloudflare R2 contains the Fleet backup object
+  `fleet-staging-postgres-ctuuws/fleet-staging-qualification-001/2026-09-07T19-37-31-932Z.sql.gz`
+  at 16.16 KB. Dokploy's PostgreSQL Backups UI can select that object for
+  restore, but the final Restore action was not submitted; no disposable
+  database was created during that initial pass.
+- Dokploy restored that exact R2 object into the pre-created disposable database
+  `fleet_restore_validation_20260908_0548` and reported `Restore completed
+  successfully`. The restored database contained 23 public tables, two current
+  migration ledger entries, five Graphile Worker tables, 242 public or worker
+  constraints, ten RLS-enabled public tables, two synthetic organizations, and
+  seven synthetic application users. Both migration ledger checksums matched
+  the current `0000_starter.sql` and `0001_p1-database-foundation.sql` files.
+  The disposable database was then dropped with `FORCE`, and a catalog query
+  confirmed `database_remaining=0`. The active `fleet` database and staging
+  services remained running.
+- The trusted `fleet-starter-bootstrap` DevX profile now includes a pinned
+  Docker 29.7.2 CLI, Compose v2, the Platform VM Docker socket, host networking,
+  host-equivalent source and temporary paths, and a bounded Docker preflight.
+  The complete `devx test validate-starter` matrix passed, including the former
+  `all-server-capabilities` Docker blocker, and post-run inspection found no
+  leftover fixture containers, volumes, or temporary directories.
+- The Fleet DevX runtime was rebuilt and restarted after starter qualification.
+  All seven services are healthy, both loopback port forwards are connected,
+  and Mutagen reports zero synchronization conflicts. The in-app browser opened
+  `http://fleet-frontend-a8b5b194bbaa.localhost:47121`; its typed health action
+  returned `status: ok` with instance `a8b5b194bbaa`, and its signed-out viewer
+  action returned `UNAUTHORIZED`.
+- Direct top-level in-app-browser navigation to both the public and DevX
+  `/trpc/health` URLs returns `net::ERR_BLOCKED_BY_CLIENT`, while the same
+  endpoint succeeds when called by the loaded application. This isolates the
+  behavior to the browser client's raw API-navigation policy; it does not block
+  interactive browser qualification or HTTP-level API qualification.
+- After the restore drill and disposable database deletion, the public staging
+  page loaded again over Cloudflare HTTPS and its typed health action returned
+  `status: ok` at `2026-09-08T06:03:49.382Z`.
 - Starter generator regression fix adds role bootstrap before the all-server
   fixture migration run; local typecheck and initializer tests pass.
 - Never record secret values or full connection strings.
@@ -212,30 +305,25 @@ E2E Platform VM and qualify its synthetic staging operation before P2.
 - The previously exposed GHCR credential was revoked and replaced. Runtime
   database, Valkey, and Better Auth secrets were also rotated without recording
   values.
-- Dokploy 0.30.5 requires a writable cloud registry for its Swarm image mirror;
-  the refreshed VM-side credential now passes that registry login, but exact
-  digest deployment remains blocked by Dokploy's digest-reference tagging bug.
-  Keep qualification `unqualified` until a supported 0.30.5 path completes the
-  immutable deploy and rollback tests. Direct provider deployment avoids the
-  mirror for normal pulls, but registry-backed rollback still fails because
-  the credential cannot push rollback copies.
-- The VM-side operator file has not changed since the previous credential
-  rotation. The registry test and image pulls succeed, but Dokploy rollback
-  copies still fail with a registry `permission_denied` scope error. A VM-side
-  GHCR token with `read:packages`, `write:packages`, private-repository access,
-  and required organization SSO is still needed; do not paste it into chat.
-- Dokploy 0.30.5 exposes no restore procedure in its OpenAPI document; the R2
-  backup exists and can be browsed through the API, but restore into a separate
-  database still needs the Dokploy UI/workflow or an explicitly authorized
-  provider-level restore path.
+- Dokploy 0.30.5's exact-digest cloud-mirror path still has a
+  digest-reference tagging defect, so the immutable deployment proof uses the
+  supported direct-Docker provider path. Registry-backed rollback is now
+  qualified independently after the refreshed credential was injected into the
+  application definitions.
+- Dokploy 0.30.5 still exposes no restore procedure in its OpenAPI document.
+  The required UI workflow passed against a disposable database, so this is an
+  automation limitation rather than an open restore qualification blocker.
 - Dokploy 0.30.5's application API and Swarm update surface do not expose the
   `no-new-privileges` security option declared by the service contract. The
   live qualification therefore proves non-root, read-only-root, capability
   drop, tmpfs, and resource controls, but not that additional kernel flag.
-- Local DevX dependency installation is blocked by the separate private npm
-  package credential returning HTTP 401; protected CI is passing.
-- Browser automation is not currently attached; interactive user-facing proof
-  remains open until the ChatGPT browser is available.
+- Local DevX dependency installation and protected CI both pass. No package
+  credential value was read or recorded.
+- In-app browser validation is now complete for the accessible user-facing
+  checks above. Direct navigation to the JSON-only `/trpc/health` endpoint was
+  blocked by the browser client, so the typed health control was used for the
+  interactive health proof; the existing non-browser HTTP evidence remains in
+  the validation section.
 
 ## Handoff
 
